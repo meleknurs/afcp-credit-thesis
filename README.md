@@ -1,5 +1,7 @@
 # AFCP Credit Thesis
 
+> **Status:** Work in progress (Master's thesis, 2026)
+
 This repository contains the code and documentation for the MSc Data Science
 thesis:
 
@@ -14,12 +16,12 @@ Meleknur Özgü — HSLU Lucerne, 2026
 
 ```
 afcp-credit-thesis/
-├── AFCP/                    # Original Zhou & Sesia (2024) implementation (unchanged)
+├── AFCP/                    # Original implementation (kept unchanged)
 ├── thesis_experiments/      # Thesis-specific experiment scripts
 ├── docs/
-│   ├── SETUP_LOG.md         # Replication log for the original implementation
-│   └── CREDIT_ANALYSIS.md  # Thesis-specific datasets, decisions, and results
-├── data/                    # Local datasets (not tracked by Git, download separately)
+│   ├── SETUP_LOG.md
+│   └── CREDIT_ANALYSIS.md
+├── data/                    # Local datasets (not tracked by Git)
 ├── results/                 # Local experiment outputs (not tracked by Git)
 ├── requirements.txt
 └── .gitignore
@@ -32,18 +34,22 @@ remains unchanged. All thesis-specific code is developed outside this directory.
 
 ## Base method
 
-Zhou, F. & Sesia, M. (2024). *Conformal Classification with Equalized
-Coverage for Adaptively Selected Groups.*
+This work builds upon the Adaptive Fair Conformal Prediction (AFCP) framework
+introduced by
 
-- Paper: https://arxiv.org/abs/2405.15106
-- Code: https://github.com/FionaZ3696/Adaptively-Fair-Conformal-Prediction
+Zhou, F., & Sesia, M. (2024).
+*Conformal Classification with Equalized Coverage for Adaptively Selected Groups.*
+
+Paper: https://arxiv.org/abs/2405.15106
+Code: https://github.com/FionaZ3696/Adaptively-Fair-Conformal-Prediction
 
 ---
 
 ## Datasets
 
-Datasets are not tracked by Git. Download them separately and place them in
-the `data/` directory.
+Datasets are intentionally excluded from the repository due to licensing and
+distribution restrictions. Download them separately and place them in the
+`data/` directory.
 
 - **South German Credit** (Grömping 2019, corrected version of the UCI
   Statlog German Credit dataset):
@@ -64,19 +70,20 @@ pip install -r requirements.txt
 
 ## Documentation
 
-- `docs/SETUP_LOG.md` — Step-by-step replication of the original synthetic
-  and Nursery experiments, verifying that the implementation runs correctly
-  before any thesis-specific modifications are introduced.
+- `docs/SETUP_LOG.md` — Documents the complete replication of the original
+  AFCP implementation, verifying that the code runs correctly before any
+  thesis-specific modifications are introduced.
 
-- `docs/CREDIT_ANALYSIS.md` — Thesis-specific datasets, preprocessing
-  decisions, methodological choices, and empirical results. Updated
+- `docs/CREDIT_ANALYSIS.md` — Documents all thesis-specific methodological
+  decisions, preprocessing choices, and empirical results. Updated
   incrementally as the analysis progresses.
 
 ---
 
 ## Replication
 
-To reproduce the original experiments:
+The commands below reproduce the experiments provided by the original
+repository without any thesis-specific modifications.
 
 ```bash
 # Synthetic multiclass experiment
@@ -89,3 +96,20 @@ python mc_real.py 1000 0.0001 500 2023 0 True
 ```
 
 See `docs/SETUP_LOG.md` for the full replication log and expected outputs.
+
+---
+
+## Repository philosophy
+
+The goal of this repository is to maintain a strict separation between
+
+1. replication of the original AFCP implementation; and
+2. thesis-specific developments.
+
+Accordingly,
+
+- the `AFCP/` directory contains the original implementation and is kept
+  unchanged whenever possible;
+- all newly developed code is placed outside the original source tree;
+- all methodological decisions are documented separately from the replication
+  process.
