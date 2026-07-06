@@ -1,16 +1,31 @@
-# Data (do not commit — download separately, see README)
+# Data (download separately)
 data/
 *.csv
 *.asc
+*.data
 *.data-numeric
 
-# Python cache
-__pycache__/
-*.pyc
-
-# Model checkpoints and large outputs
+# Experiment outputs
+results/
 models/
 *.pt
 
-# OS files
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
 .DS_Store
+Thumbs.db
