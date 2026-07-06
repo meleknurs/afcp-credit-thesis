@@ -5,6 +5,9 @@ data/
 *.data
 *.data-numeric
 
+**/results/
+**/models/
+
 # Experiment outputs
 results/
 models/
