@@ -1,0 +1,16 @@
+# Data (do not commit — download separately, see README)
+data/
+*.csv
+*.asc
+*.data-numeric
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Model checkpoints and large outputs
+models/
+*.pt
+
+# OS files
+.DS_Store
