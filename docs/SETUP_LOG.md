@@ -50,7 +50,7 @@ afcp-credit-thesis/
 
 │
 
-├── thesis_experiments/         # Thesis-specific experiment scripts
+├── my_experiments/         # Thesis-specific experiment scripts
 
 │
 
