@@ -282,6 +282,63 @@ Table A9:
 
 ---
 
+
+---
+
+# Note — Bug identified in original implementation
+
+During replication, a possible copy-paste error was identified in the
+`selected` attribute reporting of the original `mc_real.py`.
+
+The `selected` columns for attributes 3 and 6 incorrectly check for `[0]`
+instead of their respective attribute indices:
+
+```python
+# Current (original code):
+df['selected_3'] = np.mean([1 if x == [0] else 0 for x in k_hat])
+df['selected_6'] = np.mean([1 if x == [0] else 0 for x in k_hat])
+
+# Should be:
+df['selected_3'] = np.mean([1 if x == [3] else 0 for x in k_hat])
+df['selected_6'] = np.mean([1 if x == [6] else 0 for x in k_hat])
+```
+
+With `idx_list = [0, 3, 5, 6, 7]` (Nursery experiment), attributes 3
+(Number of children) and 6 (Social conditions) are never correctly tracked
+in the summary output. Both columns instead report the selection rate of
+attribute 0.
+
+This does not affect prediction sets or coverage results — only the
+reporting of which attribute was selected.
+
+The issue was reported to the original authors:
+https://github.com/FionaZ3696/Adaptively-Fair-Conformal-Prediction/issues/1
+
+The following message was submitted:
+
+> While replicating your experiments as part of my MSc thesis, I noticed
+> what appears to be a small copy-paste error in the `complete_df_real`
+> function in `mc_real.py`.
+>
+> The `selected_3` and `selected_6` columns seem to check for `[0]` instead
+> of their respective attribute indices.
+>
+> Since `idx_list = [0, 3, 5, 6, 7]` in the Nursery experiment, attributes 3
+> (Number of children) and 6 (Social conditions) are otherwise never correctly
+> tracked in the summary output — the corresponding columns instead report the
+> selection rate of attribute 0.
+>
+> As far as I can tell, this only affects the reporting of the selected
+> attribute and does not affect the prediction sets or coverage results.
+>
+> If I'm overlooking something about the intended implementation, I'd be very
+> interested to know.
+
+All thesis-specific scripts (`mc_south_german.py`, `mc_give_me_credit.py`)
+use the corrected logic from the outset.
+
+---
+
 # Replication status
 
 Completed
