@@ -132,7 +132,7 @@ of this thesis (Zhou & Sesia 2024).
 
 ### 1.5 EDA figure
 
-![South German Credit sensitive attributes EDA](../results/figures/sgc_eda_sensitive_attributes.png)
+![South German Credit sensitive attributes EDA](../docs/figures/sgc_eda_sensitive_attributes.png)
 
 *Figure 1: Age distributions by credit risk (upper left); good-credit rates
 by personal status (upper right), foreign worker status (lower left), and
