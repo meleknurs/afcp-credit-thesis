@@ -338,7 +338,7 @@ combining age and personal_status_sex), Partial and Exhaustive would diverge.
 demonstrates stability across random train/test splits and model
 initializations. This is substantially more robust than single-seed reporting.
 
-## 2.8 Conclusion
+### 2.8 Conclusion
 
 Overall, the South German Credit experiments demonstrate that AFCP improves
 empirical coverage in the primary age-based analysis (age ≤25), and this finding
