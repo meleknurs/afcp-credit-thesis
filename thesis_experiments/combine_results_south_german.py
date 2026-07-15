@@ -7,7 +7,7 @@ Exhaustive), calculates coverage/length deltas vs. Marginal, and includes AFCP's
 attribute selection rate.
 
 Outputs:
-    - results/multiclass/real/combine_results_summary.csv (publication-ready summary)
+    - thesis_experiments/results/south_german_credit/summary_by_config.csv (publication-ready summary)
 
 Usage:
     python combine_results_south_german.py
@@ -18,8 +18,8 @@ import glob
 import pandas as pd
 import numpy as np
 
-RESULTS_DIR = "results/multiclass/real"
-OUTPUT_CSV = os.path.join(RESULTS_DIR, "combine_results_summary.csv")
+RESULTS_DIR = "thesis_experiments/results/south_german_credit/raw"
+OUTPUT_CSV = os.path.join("thesis_experiments/results/south_german_credit", "summary_by_config.csv")
 
 
 def main():

@@ -24,7 +24,7 @@ Example:
     python mc_south_german.py 500 0.0001 500 2023 0 True age25
 
 Outputs:
-    results/multiclass/real/sgc_<run_config>_ndata<n>_....txt
+    thesis_experiments/results/south_german_credit/raw/sgc_<run_config>_ndata<n>_....txt
 """
 
 import os
@@ -98,7 +98,7 @@ n_test = 500
 # Output file #
 ###############
 
-outdir = "results/multiclass/real/"
+outdir = "thesis_experiments/results/south_german_credit/raw/"
 os.makedirs(outdir, exist_ok=True)
 
 outfile_name = (

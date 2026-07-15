@@ -56,7 +56,7 @@ random.seed(seed)
 ###############
 # Output file #
 ###############
-outdir = os.path.join(SCRIPT_DIR, "results", "multiclass", "give_me_credit")
+outdir = os.path.join(SCRIPT_DIR, "results", "give_me_credit", "sample_size_sweep", "raw")
 os.makedirs(outdir, exist_ok=True)
 sweep_outfile = os.path.join(outdir, f"sweep_ntest{n_test}_seed{seed}.txt")
 summary_outfile = os.path.join(outdir, f"sweep_summary_ntest{n_test}_seed{seed}.txt")

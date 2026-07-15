@@ -87,7 +87,7 @@ n_test = 500
 # Output file #
 ###############
 
-outdir = os.path.join(SCRIPT_DIR, "results", "multiclass", "real")
+outdir = os.path.join(SCRIPT_DIR, "results", "give_me_credit", "raw")
 os.makedirs(outdir, exist_ok=True)
 
 outfile_name = (

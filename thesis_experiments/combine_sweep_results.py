@@ -19,7 +19,8 @@ import glob
 import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-RESULTS_DIR = os.path.join(SCRIPT_DIR, "results", "multiclass", "give_me_credit")
+SWEEP_DIR = os.path.join(SCRIPT_DIR, "results", "give_me_credit", "sample_size_sweep")
+RESULTS_DIR = os.path.join(SWEEP_DIR, "raw")
 
 SEEDS = [2023, 2024, 2025, 2026, 2027]
 
@@ -58,7 +59,7 @@ summary = (
 summary["afcp_selected_age_mean_pct"] = (summary["afcp_selected_age_mean"] * 100).round(1)
 summary["afcp_selected_age_std_pct"] = (summary["afcp_selected_age_std"] * 100).round(1)
 
-out_path = os.path.join(RESULTS_DIR, "sweep_summary_5seed_combined.csv")
+out_path = os.path.join(SWEEP_DIR, "summary_5seed_combined.csv")
 summary.to_csv(out_path, index=False)
 
 print(f"Seeds combined: {sorted(all_df['seed'].unique().tolist())}")
