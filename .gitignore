@@ -1,15 +1,11 @@
-# Data (download separately)
-data/
-*.csv
-*.asc
-*.data
-*.data-numeric
+# Data (download separately) - raw datasets only, not results
+data/*.csv
+data/*.asc
+data/*.data
+data/*.data-numeric
 
-**/results/
+# Experiment outputs - exclude model checkpoints, KEEP results/
 **/models/
-
-# Experiment outputs
-results/
 models/
 *.pt
 
@@ -32,3 +28,29 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Paper drafts (not code)
+AFCP_Credit_Scoring*.docx
+AFCP_Credit_Scoring*.pdf
+
+# Raw run logs
+thesis_experiments/run_log_2023.txt
+
+# Experiment results - keep only what actually backs the manuscript's tables
+AFCP/experiments/results/
+
+# Table 1 & 2 (SGC): summary CSV has Overall coverage, but not worst-group -
+# keep the raw age25/agemedian seed files for that; pstatus isn't used in a table
+results/multiclass/real/*.txt
+!results/multiclass/real/sgc_age25_ndata500_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
+!results/multiclass/real/sgc_agemedian_ndata500_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
+
+# Table 3 (GMSC, age_3way): not in combine_results_gmsc_summary.csv at all -
+# keep only the primary ndata12000 seed files, ignore the sample-size sweep variants
+thesis_experiments/results/multiclass/real/*.txt
+!thesis_experiments/results/multiclass/real/gmsc_age_3way_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
+
+# Table 4 (GMSC sample-size sweep): keep only the 5-seed combined summary,
+# ignore the raw per-seed sweep files it's built from
+thesis_experiments/results/multiclass/give_me_credit/sweep_ntest1000_seed*.txt
+thesis_experiments/results/multiclass/give_me_credit/sweep_summary_ntest1000_seed*.txt

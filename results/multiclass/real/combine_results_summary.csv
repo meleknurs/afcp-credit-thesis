@@ -1,0 +1,16 @@
+Config,Level,Method,Coverage (mean ± sd),Length (mean ± sd),ΔCoverage_vs_Marginal,ΔLength_vs_Marginal,Selected_Attr_%
+age25,Overall,Adaptive,0.9124±0.0156,1.765±0.062,+0.0140,+0.028,45.2
+age25,Overall,Adaptive1,0.9184±0.0196,1.783±0.057,+0.0200,+0.046,
+age25,Overall,Marginal,0.8984±0.0214,1.737±0.053,+0.0000,+0.000,
+age25,Overall,Partial,0.8992±0.0223,1.747±0.051,+0.0008,+0.010,
+age25,Overall,Exhaustive,0.8992±0.0223,1.747±0.051,+0.0008,+0.010,
+agemedian,Overall,Adaptive,0.9144±0.0137,1.774±0.059,+0.0160,+0.038,60.0
+agemedian,Overall,Adaptive1,0.9156±0.0140,1.779±0.054,+0.0172,+0.042,
+agemedian,Overall,Marginal,0.8984±0.0214,1.737±0.053,+0.0000,+0.000,
+agemedian,Overall,Partial,0.8924±0.0257,1.718±0.067,-0.0060,-0.018,
+agemedian,Overall,Exhaustive,0.8924±0.0257,1.718±0.067,-0.0060,-0.018,
+pstatus,Overall,Adaptive,0.9144±0.0166,1.772±0.062,+0.0160,+0.035,40.0
+pstatus,Overall,Adaptive1,0.9248±0.0235,1.800±0.066,+0.0264,+0.063,
+pstatus,Overall,Marginal,0.8984±0.0214,1.737±0.053,+0.0000,+0.000,
+pstatus,Overall,Partial,0.9084±0.0282,1.754±0.084,+0.0100,+0.018,
+pstatus,Overall,Exhaustive,0.9084±0.0282,1.754±0.084,+0.0100,+0.018,

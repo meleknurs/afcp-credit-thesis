@@ -1,0 +1,7 @@
+n_train_calib,afcp_selected_age_mean,afcp_selected_age_std,n_seeds,afcp_selected_age_mean_pct,afcp_selected_age_std_pct
+4000,0.0,0.0,5,0.0,0.0
+8000,0.499,0.5761978826757349,4,49.9,57.6
+12000,0.5,0.5773502691896257,4,50.0,57.7
+16000,0.5,0.5773502691896257,4,50.0,57.7
+20000,1.0,,1,100.0,
+40000,1.0,,1,100.0,
