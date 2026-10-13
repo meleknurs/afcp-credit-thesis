@@ -47,10 +47,14 @@ thesis_experiments/results/south_german_credit/raw/*.txt
 
 # Table 3 (GMSC, age_3way): not in summary_by_attribute.csv at all -
 # keep only the primary ndata12000 seed files, ignore the sample-size sweep variants
-# and the single-attribute configs already captured in summary_by_attribute.csv
+# and the single-attribute configs already captured in summary_by_attribute.csv.
+# Also keep gmsc_multi_* (Section 4.2.3 exploratory multi-attribute analysis).
 thesis_experiments/results/give_me_credit/raw/*.txt
 !thesis_experiments/results/give_me_credit/raw/gmsc_age_3way_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
+!thesis_experiments/results/give_me_credit/raw/gmsc_multi_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
 
 # Table 4 (GMSC sample-size sweep): keep only the 5-seed combined summary,
 # ignore the raw per-seed sweep files it's built from
 thesis_experiments/results/give_me_credit/sample_size_sweep/raw/
+# Claude runner queue (local only)
+.claude_queue/

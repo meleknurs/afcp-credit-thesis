@@ -129,13 +129,18 @@ splits are evaluated in fairness experiments.
 ### 2.1 Experimental Design
 
 This section documents the design and results of Adaptive Fairness-aware Conformal
-Prediction (AFCP) experiments on GMSC, following Zhou & Sesia (2024).
+Prediction (AFCP) experiments on GMSC, following Zhou & Sesia (2024). The experimental
+design evolved after the EDA in Section 1: the manuscript's primary GMSC analysis uses a
+**three-level age split** (≤35, 36–55, >55), not the median/policy-based splits originally
+proposed in Section 1.4. The median, policy-based (<40), income-median, and
+number-of-dependents splits were run as earlier single-attribute checks before the
+three-level split was adopted as primary; they are not reported in the manuscript but are
+kept in the repository (Section 2.5).
 
-**Experimental parameters:**
+**Experimental parameters (main age-based comparison, Table 3):**
 - **Model:** Simple neural network (64 hidden units, ReLU activation)
-- **Train/calib/test split:** 250 / 250 / 500 (n_total = 1000 from 150K)
+- **Train/calib/test split:** 6,000 / 6,000 / 500 (n_train_calib = 12,000)
 - **Learning rate:** 0.0001
-- **Epochs:** 500
 - **Nonconformity score:** Negative probability of true class, -P(y_true)
 - **Nominal coverage level (α):** 0.1 (90%)
 - **t-test tolerance (ttest_delta):** 0 (default AFCP)
@@ -147,64 +152,139 @@ Prediction (AFCP) experiments on GMSC, following Zhou & Sesia (2024).
 2. **Adaptive (AFCP):** With adaptive hypothesis-testing filter (default)
 3. **Adaptive1:** Without adaptive hypothesis-testing filter
 4. **Partial equalized coverage:** Fixed baseline method
-5. **Exhaustive equalized coverage:** Fixed baseline method
+5. **Exhaustive equalized coverage:** Fixed baseline method (identical to Partial here,
+   since only one candidate sensitive attribute was supplied)
 
-### 2.2 Key Observations
+### 2.2 Primary Analysis: Three-Level Age Split (Manuscript Table 3)
 
-*Observations will be populated following experimental runs.*
+**Rationale:** Age was divided into three groups — ≤35, 36–55, and >55 years — and this
+configuration is reported as the manuscript's primary GMSC analysis (Section 4.2.1).
+Results are averaged across five random seeds.
 
-### 2.3 Primary Analysis: Median Split (age ≤52 vs >52)
+| Method | Overall coverage | Worst-group coverage | Coverage gap | Average set size |
+|--------|-------------------|------------------------|---------------|---------------------|
+| AFCP – Adaptive | 0.915 ± 0.008 | 0.893 ± 0.009 | 0.043 ± 0.012 | 1.902 ± 0.010 |
+| AFCP – Adaptive1 | 0.919 ± 0.010 | 0.900 ± 0.014 | 0.036 ± 0.011 | 1.906 ± 0.011 |
+| Marginal | 0.908 ± 0.012 | 0.875 ± 0.028 | 0.057 ± 0.026 | 1.892 ± 0.014 |
+| Partial | 0.910 ± 0.012 | 0.886 ± 0.029 | 0.047 ± 0.037 | 1.888 ± 0.013 |
+| Exhaustive | 0.910 ± 0.012 | 0.886 ± 0.029 | 0.047 ± 0.037 | 1.888 ± 0.013 |
 
-**Rationale:** The median split is evaluated as the primary analysis because it provides
-balanced subgroup sizes (51.6% / 48.4%), enabling robust fairness estimation while preserving
-the age-related variation observed during EDA.
+*Worst-group coverage = minimum coverage across the three age groups, computed per seed
+then averaged. Coverage gap = (max − min) coverage across the three groups, computed per
+seed then averaged. These are not simply "Overall − Worst-group" because the overall
+figure is the marginal coverage on the full test set, not the mean of the group figures.*
 
-**Design table:**
+**Key finding:** Marginal CP reached satisfactory overall coverage (0.908) but its
+worst-group coverage (0.875) fell well below the nominal 0.90 target. AFCP–Adaptive raised
+worst-group coverage to 0.893 and narrowed the gap from 0.057 to 0.043, at the cost of a
+small increase in average set size (1.892 → 1.902). Adaptive1 produced the highest overall
+(0.919) and worst-group (0.900) coverage and the smallest gap (0.036), with a slightly
+larger set size than Adaptive. Paired seed-level differences between AFCP–Adaptive and
+Marginal CP were not statistically significant (manuscript reports p = 0.12–0.44 across
+comparisons), so these are descriptive rather than confirmed systematic differences.
 
-| Method | Coverage (mean ± sd) | Prediction-set size (mean ± sd) | ΔCoverage | ΔLength | Selected (%) |
-|--------|----------------------|----------------------------------|-----------|---------|--------------|
-| Adaptive | TBD | TBD | — | — | — |
-| Adaptive1 | TBD | TBD | — | — | — |
-| Marginal | TBD | TBD | — | — | — |
-| Partial | TBD | TBD | — | — | — |
-| Exhaustive | TBD | TBD | — | — | — |
+**Source:** `thesis_experiments/results/give_me_credit/raw/gmsc_age_3way_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed{2023-2027}.txt`
 
-### 2.4 Secondary Analysis: Policy-based Split (age <40 vs ≥40)
+### 2.3 Sensitivity to Joint Training and Calibration Sample Size (Manuscript Table 4)
 
-**Rationale:** This policy-motivated age threshold provides a robustness analysis informed
-by age-discrimination law. Despite its unbalanced subgroup sizes (21.3% / 78.7%), this
-split serves as a stress test for AFCP under challenging conditions.
+**Rationale:** To explore whether AFCP's attribute-selection behavior changed as more data
+became available, training and calibration samples were increased together (remaining
+equal in size) while the test set was fixed at 1,000 observations. Because both samples
+grow simultaneously, this analysis cannot isolate the effect of calibration-sample size
+from the effects of a larger training set and re-fitted classifier. Classifiers were
+trained for 200 epochs (vs. 500 in the main experiments).
 
-**Design table:**
+AFCP–Adaptive attribute-selection rate (% of test observations for which age was selected),
+by training/calibration sample size and seed (matches manuscript Table 4 exactly):
 
-| Method | Coverage (mean ± sd) | Prediction-set size (mean ± sd) | ΔCoverage | ΔLength | Selected (%) |
-|--------|----------------------|----------------------------------|-----------|---------|--------------|
-| Adaptive | TBD | TBD | — | — | — |
-| Adaptive1 | TBD | TBD | — | — | — |
-| Marginal | TBD | TBD | — | — | — |
-| Partial | TBD | TBD | — | — | — |
-| Exhaustive | TBD | TBD | — | — | — |
+| Training sample | Calibration sample | Seed 2023 | Seed 2024 | Seed 2025 | Seed 2026 | Seed 2027 |
+|------------------|----------------------|-----------|-----------|-----------|-----------|-----------|
+| 2,000 | 2,000 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| 4,000 | 4,000 | 99.6% | 0.0% | 0.0% | 0.0% | 100.0% |
+| 6,000 | 6,000 | 100.0% | 0.0% | 0.0% | 0.0% | 100.0% |
+| 8,000 | 8,000 | 100.0% | 0.0% | 0.0% | 0.0% | 100.0% |
 
-### 2.5 Summary of Key Findings
+*Seeds 2023 and 2024 have runs beyond 8,000/8,000 (up to 20,000/20,000, both flat at
+100.0%/0.0% respectively) but the manuscript table stops at 8,000/8,000, the largest size
+with a completed run for every one of the five seeds.*
 
-*Results will be populated following experimental runs.*
+**Data-quality note:** seed 2024 has two result files —
+`sweep_summary_ntest1000_seed2024.txt` (1 row, an interrupted run) and
+`sweep_summary_ntest1000_seed2024_run1.txt` (6 rows, complete). `combine_sweep_results.py`
+reads the exact filename `sweep_summary_ntest1000_seed{seed}.txt` and would therefore pick
+up the *incomplete* file for seed 2024, not `_run1`. The manuscript's Table 4 in fact
+reports the complete run1 values (0.0% at every size). If the sweep is rerun or the combine
+script is used to regenerate outputs, rename or merge the run1 file first, otherwise the
+regenerated summary will silently drop seed 2024's data at sizes above 4,000/4,000.
+
+**Key finding:** Under seeds 2023 and 2027, AFCP–Adaptive did not select age at the
+smallest size (2,000/2,000) but selected it for nearly all or all test observations once
+both samples reached 4,000/4,000, remaining at 100% at larger sizes. Under seeds 2024,
+2025, and 2026, age was not selected at any evaluated size. Because training and
+calibration sizes increase together, these transitions cannot be attributed to
+calibration-sample size alone (see Section 2.6 and manuscript Section 5.4).
+
+**Source:** `thesis_experiments/results/give_me_credit/sample_size_sweep/raw/sweep_summary_ntest1000_seed{2023-2027}.txt`, combined via `thesis_experiments/combine_sweep_results.py` into `thesis_experiments/results/give_me_credit/sample_size_sweep/summary_5seed_combined.csv`.
+
+### 2.4 Exploratory Multi-Attribute Analysis (Manuscript Section 4.2.3)
+
+**Rationale:** Beyond single-attribute comparisons, two multi-attribute candidate sets were
+evaluated to check whether AFCP's final reported attribute selection changed when more than
+one candidate demographic/socioeconomic attribute was supplied: (1) age and income, and
+(2) age, income, and number of dependents. Both AFCP–Adaptive and Adaptive1 were evaluated
+across five seeds, n_train_calib = 12,000, 500 test observations.
+
+**Key finding:** In both multi-attribute configurations, the final reported selection was
+empty across all test observations and all five seeds, for both Adaptive and Adaptive1.
+Diagnostic logging for seeds 2023 and 2027 traced this, for the age+income configuration,
+to disagreement between label-specific selections (age selected under the no-default
+label, income under the default label); because the implementation reports only the
+intersection of label-specific selections, the disagreement produced an empty final
+output. An empty final selection therefore does not necessarily mean no attribute was
+identified at any intermediate stage — see manuscript Section 5.4 for the full discussion.
+
+**Source:** `thesis_experiments/results/give_me_credit/raw/gmsc_multi_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed{2023-2027}.txt` (column `selected_none = 1.0` for the overall row confirms the empty-selection outcome).
+
+### 2.5 Earlier Exploratory Checks: Single-Attribute Definitions (Not in Manuscript)
+
+Before the three-level age split was adopted as primary, four single-attribute
+configurations were run and combined into
+`thesis_experiments/results/give_me_credit/summary_by_attribute.csv`. **These results are
+not discussed or cited anywhere in the submitted manuscript** — they are kept in the
+repository for transparency about the experimental process, not as evidence backing a
+published claim.
+
+| Config | Method | Overall coverage | Set size |
+|--------|--------|---------------------|------------|
+| age_median (≤52 vs >52) | Adaptive | 0.919 ± 0.009 | 1.906 ± 0.010 |
+| age_40 (<40 vs ≥40) | Adaptive | 0.910 ± 0.011 | 1.897 ± 0.013 |
+| income_median | Adaptive | 0.911 ± 0.009 | 1.898 ± 0.011 |
+| dependents (0 vs ≥1) | Adaptive | 0.912 ± 0.008 | 1.900 ± 0.010 |
+
+Full per-method, per-group figures (including Marginal/Adaptive1/Partial/Exhaustive and
+Group 0/1 breakdowns) are in the CSV directly; they are not reproduced here since they do
+not correspond to a manuscript claim.
 
 ### 2.6 Methodological Notes
 
-**On age split selection:** EDA examined observed default rates across 10-year age cohorts
-(6 groups from <30 to 70+). Default risk declined monotonically with no sharp breakpoint.
-Both median split (52) and policy-based split (40) are evaluated in experiments; the
-data does not favor one threshold a priori.
+**On the age split used:** EDA (Section 1) examined observed default rates across 10-year
+age cohorts and found a monotonic decline with no sharp breakpoint, motivating the initial
+median/policy-based split proposal. The experimental design subsequently moved to a
+three-level split (≤35, 36–55, >55) as the primary manuscript analysis; the median,
+policy-based, income, and dependents splits remain in the repository as exploratory checks
+(Section 2.5) but do not appear in the manuscript.
 
-**On ttest_delta:** All experiments used ttest_delta = 0, corresponding to the default
-AFCP hypothesis test where the null hypothesis is that miscoverage does not exceed the
-nominal level α (0.1). Adaptive1 omits this hypothesis-testing step. This distinction
-explains why Adaptive1 yields larger coverage gains than Adaptive at the cost of larger
-prediction-set inflation.
+**On ttest_delta:** All main-comparison experiments used ttest_delta = 0, the default AFCP
+hypothesis test where the null hypothesis is that miscoverage does not exceed the nominal
+level α (0.1). Adaptive1 omits this hypothesis-testing step, which is why Adaptive1
+consistently yields larger coverage gains than Adaptive at the cost of a larger average
+prediction-set size.
 
-**On balanced vs. unbalanced groups:** Primary analysis uses balanced median split for
-statistical power. Secondary analysis evaluates performance under imbalance, relevant
-to real-world deployment where protected classes are often minorities.
+**On the sample-size sweep (Section 2.3):** Because training and calibration sample sizes
+were increased jointly, the sweep cannot separate the effect of more calibration data from
+the effect of a larger, re-fitted training set — a limitation noted explicitly in the
+manuscript (Section 4.2.2) and not yet addressed by a follow-up experiment that varies
+calibration size alone.
 
 **On missing values:** MonthlyIncome and NumberOfDependents are retained as model features.
 Missing values are handled during preprocessing by imputing MonthlyIncome with the
@@ -215,15 +295,14 @@ would result from listwise deletion.
 ### 2.7 Conclusion
 
 GMSC provides a high-quality testbed for AFCP fairness evaluation with clear age-related
-differences in observed default rates. The monotonic decline in default risk across age
-cohorts motivated the selection of two age thresholds — a data-driven median split (primary)
-and a policy-based split (secondary) — enabling both optimal estimation (balanced groups)
-and robustness evaluation (imbalanced groups).
-
-The empirical AFCP results presented in the following sections evaluate whether these
-observed differences in default risk translate into differences in conformal coverage
-and whether AFCP can reduce potential group-conditional coverage disparities while
-maintaining prediction efficiency.
+differences in observed default rates. The manuscript's primary analysis (three-level age
+split) shows that Marginal CP's satisfactory overall coverage (0.908) coexists with lower
+worst-group coverage (0.875), and that AFCP–Adaptive and Adaptive1 raise worst-group
+coverage and narrow the gap descriptively, though not to a statistically significant
+degree across five seeds. The sample-size sweep and multi-attribute analyses further show
+that AFCP's attribute-selection behavior is sensitive to calibration-sample size and to the
+candidate-attribute set, which the manuscript discusses as a limitation on interpreting a
+single "selected attribute" output as a complete fairness assessment (Section 5.4).
 
 ---
 
