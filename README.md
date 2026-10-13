@@ -18,11 +18,19 @@ Meleknur Özgü — HSLU Lucerne, 2026
 afcp-credit-thesis/
 ├── AFCP/                    # Original implementation (kept unchanged)
 ├── thesis_experiments/      # Thesis-specific experiment scripts
+│   ├── eda_south_german.py / eda_give_me_credit.py
+│   ├── mc_south_german.py / mc_give_me_credit.py / mc_give_me_credit_sweep.py
+│   ├── combine_results_south_german.py / combine_sweep_results.py
+│   └── results/             # Seed-level outputs and summaries backing the manuscript tables
+│       ├── south_german_credit/
+│       └── give_me_credit/
 ├── docs/
 │   ├── SETUP_LOG.md
-│   └── CREDIT_ANALYSIS.md
+│   ├── CREDIT_SOUTH_GERMAN.md
+│   ├── CREDIT_GMSC.md
+│   └── figures/
+├── tools/                   # Helper scripts (not part of the analysis)
 ├── data/                    # Local datasets (not tracked by Git)
-├── results/                 # Local experiment outputs (not tracked by Git)
 ├── requirements.txt
 └── .gitignore
 ```
@@ -74,9 +82,18 @@ pip install -r requirements.txt
   AFCP implementation, verifying that the code runs correctly before any
   thesis-specific modifications are introduced.
 
-- `docs/CREDIT_ANALYSIS.md` — Documents all thesis-specific methodological
-  decisions, preprocessing choices, and empirical results. Updated
-  incrementally as the analysis progresses.
+- `docs/CREDIT_SOUTH_GERMAN.md` — South German Credit: exploratory data
+  analysis, choice of sensitive attributes, experimental design and results
+  (primary age ≤25 split, median-split robustness check, exploratory
+  personal-status analysis).
+
+- `docs/CREDIT_GMSC.md` — Give Me Some Credit: exploratory data analysis,
+  choice of age as the sensitive attribute, main three-level age comparison,
+  joint training/calibration sample-size sweep, and exploratory
+  multi-attribute analysis.
+
+Only the result files that back the manuscript's tables are tracked; see the
+comments in `.gitignore` for the mapping from tables to files.
 
 ---
 
