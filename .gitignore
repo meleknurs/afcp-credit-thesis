@@ -44,6 +44,8 @@ AFCP/experiments/results/
 thesis_experiments/results/south_german_credit/raw/*.txt
 !thesis_experiments/results/south_german_credit/raw/sgc_age25_ndata500_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
 !thesis_experiments/results/south_german_credit/raw/sgc_agemedian_ndata500_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
+# pstatus: excluded from the manuscript (small groups, see 5.7) but kept for transparency
+!thesis_experiments/results/south_german_credit/raw/sgc_pstatus_ndata500_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
 
 # Table 3 (GMSC, age_3way): not in summary_by_attribute.csv at all -
 # keep only the primary ndata12000 seed files, ignore the sample-size sweep variants
@@ -52,6 +54,10 @@ thesis_experiments/results/south_german_credit/raw/*.txt
 thesis_experiments/results/give_me_credit/raw/*.txt
 !thesis_experiments/results/give_me_credit/raw/gmsc_age_3way_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
 !thesis_experiments/results/give_me_credit/raw/gmsc_multi_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
+# age+income two-attribute config, also discussed in Section 4.2.3
+!thesis_experiments/results/give_me_credit/raw/gmsc_age_income_ndata12000_lr0.0001_ttestdelta0.0_conditionalTrue_seed*.txt
+# ttest_delta = 0.05 runs (seed 2023 only so far): partial sensitivity analysis, not yet in the manuscript
+!thesis_experiments/results/give_me_credit/raw/gmsc_age_3way_ndata*_lr0.0001_ttestdelta0.05_conditionalTrue_seed*.txt
 
 # Table 4 (GMSC sample-size sweep): keep only the 5-seed combined summary,
 # ignore the raw per-seed sweep files it's built from
