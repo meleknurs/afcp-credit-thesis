@@ -84,7 +84,13 @@ jobs:
           python v2/run_afcp.py ${{ inputs.dataset }} ${{ inputs.model }} ${{ matrix.seed }} "${{ matrix.config }}" ${{ inputs.conditional }} $ARGS 2>&1 | grep -v "it/s" | tail -40
       - name: Sanitise artifact name
         id: name
-        run: echo "name=$(echo 'res-${{ inputs.dataset }}-${{ inputs.model }}-${{ matrix.seed }}-${{ matrix.config }}' | tr -c 'A-Za-z0-9._-\n' '_')" >> $GITHUB_OUTPUT
+        shell: python
+        run: |
+          import os, re
+          raw = "res-${{ inputs.dataset }}-${{ inputs.model }}-${{ inputs.conditional }}-${{ matrix.seed }}-${{ matrix.config }}"
+          name = re.sub(r"[^A-Za-z0-9._-]", "_", raw)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"name={name}\n")
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.name.outputs.name }}
