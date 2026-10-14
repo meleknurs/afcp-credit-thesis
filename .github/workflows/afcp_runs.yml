@@ -1,0 +1,114 @@
+name: AFCP v2 runs
+
+# Runs thesis_experiments/v2/run_afcp.py as a seed x config matrix on GitHub-hosted
+# runners and commits the result files back to results/v2/afcp/<dataset>/.
+# Datasets whose data is in the repo (sgc, taiwan) only; gmsc runs on the laptop.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: dataset
+        type: choice
+        options: [taiwan, sgc]
+        default: taiwan
+      model:
+        description: model
+        type: choice
+        options: [nn, lr]
+        default: nn
+      conditional:
+        description: calibration regime (True = label-conditional, False = marginal)
+        type: choice
+        options: ["False", "True"]
+        default: "False"
+      seeds:
+        description: JSON list of seeds
+        default: '[2023,2024,2025,2026,2027,2028,2029,2030,2031,2032]'
+      configs:
+        description: JSON list of bias configs (<type>:<group_col>:<level>:<eps>:<scope>)
+        default: '["none:sex_female:0:0:train"]'
+      n_test:
+        description: test size
+        default: "500"
+      n_train:
+        description: train size (blank = dataset default)
+        default: ""
+      n_calib:
+        description: calibration size (blank = dataset default)
+        default: ""
+      ttest_delta:
+        default: "0"
+      sig_level:
+        default: "0.1"
+      adaptive1:
+        description: also run Adaptive1 (0/1)
+        default: "0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: afcp-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        seed: ${{ fromJSON(inputs.seeds) }}
+        config: ${{ fromJSON(inputs.configs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies (CPU torch)
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install numpy scipy scikit-learn pandas tqdm matplotlib torchmetrics statsmodels
+      - name: Run
+        env:
+          OMP_NUM_THREADS: "2"
+        run: |
+          cd thesis_experiments
+          ARGS="n_test=${{ inputs.n_test }} ttest_delta=${{ inputs.ttest_delta }} sig_level=${{ inputs.sig_level }} adaptive1=${{ inputs.adaptive1 }} out_dir=$GITHUB_WORKSPACE/out"
+          [ -n "${{ inputs.n_train }}" ] && ARGS="$ARGS n_train=${{ inputs.n_train }}"
+          [ -n "${{ inputs.n_calib }}" ] && ARGS="$ARGS n_calib=${{ inputs.n_calib }}"
+          python v2/run_afcp.py ${{ inputs.dataset }} ${{ inputs.model }} ${{ matrix.seed }} "${{ matrix.config }}" ${{ inputs.conditional }} $ARGS 2>&1 | grep -v "it/s" | tail -40
+      - name: Sanitise artifact name
+        id: name
+        run: echo "name=$(echo 'res-${{ inputs.dataset }}-${{ inputs.model }}-${{ matrix.seed }}-${{ matrix.config }}' | tr -c 'A-Za-z0-9._-\n' '_')" >> $GITHUB_OUTPUT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.name.outputs.name }}
+          path: out/*.txt
+          retention-days: 30
+
+  collect:
+    needs: run
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: res-*
+          path: collected
+          merge-multiple: true
+      - name: Commit results
+        run: |
+          mkdir -p thesis_experiments/results/v2/afcp/${{ inputs.dataset }}
+          cp collected/*.txt thesis_experiments/results/v2/afcp/${{ inputs.dataset }}/ || { echo "no results"; exit 0; }
+          git config user.name "github-actions"; git config user.email "github-actions@users.noreply.github.com"
+          git add thesis_experiments/results/v2/afcp
+          git commit -m "AFCP v2 results: ${{ inputs.dataset }} ${{ inputs.model }} cond=${{ inputs.conditional }} (run ${{ github.run_id }})" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase && git push && break || sleep $((RANDOM % 20 + 5)); done
