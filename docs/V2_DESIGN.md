@@ -3,6 +3,34 @@
 Status: v2 agreed 14 Oct 2026 (open items decided, see below), based on the
 literature review in `docs/literature/experiment_design_review.md`.
 
+## Thesis narrative (how the work is presented)
+
+The thesis presents one experimental design, this one. The July 2026 runs are
+reported as a **pilot study**, not as a competing set of results: the pilot
+used the original AFCP code with its default settings on two credit datasets
+and produced three observations — mean prediction-set size ≈ 1.9 (sets almost
+always contained both labels), an AFCP attribute-selection rate of zero in most
+seeds, and classifier probabilities that assigned ≈ 0 to most true defaulters.
+Diagnosing these three observations (Section 0) is what fixed the design below.
+The BIAS 2026 conference submission based on the pilot was not accepted and is
+not referenced in the thesis; what is reported from the pilot, and how, is a
+presentation choice.
+
+Spine of the argument:
+
+- **What.** Compare marginal CP, partial / exhaustive equalized coverage and
+  AFCP on credit-scoring data, and measure AFCP's power to detect disparity
+  under controlled, semi-synthetic bias.
+- **Why.** A marginal guarantee hides group-level under-coverage (EU AI Act
+  context); AFCP has not been applied to credit data; and the pilot showed
+  that the method's behaviour depends critically on classifier quality and on
+  the calibration regime — that dependence is itself a research question.
+- **How.** Three datasets spanning three regimes (small sample / rare class /
+  multi-attribute); two classifiers; both calibration regimes reported;
+  split sizes derived from the smallest group × label cell; literature-based
+  injection mechanism and grid; a degeneracy check logged for every run;
+  10 seeds with paired tests.
+
 ## 0. Why a v2
 
 Phase 0 (Mar–Jul, `archive/phase0_early_trials/`) and Phase 1 (Jul,
