@@ -1,0 +1,9 @@
+group,level,label,n,share,n_bad,bad_rate,share_bad_cell,exp_bad_in_calib,exp_bad_in_test,exp_group_in_test,se_cov90_group_test_pp,se_cov90_badcell_test_pp
+age_le25,0,>25,810,0.81,220,0.2716049382716049,0.22,77.0,66.0,243.0,1.9,3.7
+age_le25,1,<=25,190,0.19,80,0.42105263157894735,0.08,28.0,24.0,57.0,4.0,6.1
+age_le33,0,>33,486,0.486,119,0.2448559670781893,0.119,41.6,35.7,146.0,2.5,5.0
+age_le33,1,<=33,514,0.514,181,0.3521400778210117,0.181,63.4,54.3,154.0,2.4,4.1
+personal_status_sex,1,male divorced/separated,50,0.05,20,0.4,0.02,7.0,6.0,15.0,7.7,12.2
+personal_status_sex,2,female non-single or male single,310,0.31,109,0.35161290322580646,0.109,38.2,32.7,93.0,3.1,5.2
+personal_status_sex,3,male married/widowed,548,0.548,146,0.2664233576642336,0.146,51.1,43.8,164.0,2.3,4.5
+personal_status_sex,4,female single,92,0.092,25,0.2717391304347826,0.025,8.8,7.5,28.0,5.7,11.0
