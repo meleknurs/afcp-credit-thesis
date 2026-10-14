@@ -165,6 +165,7 @@ across seeds reported.
 | RQ1 marginal CP under-covers groups? | baseline tables, 3 datasets × 3 models × 2 calibration regimes, with cell-count table and resolvable-gap statement |
 | RQ2 which method reduces disparity? | same tables; paired tests; calibration sweep on Taiwan reproducing AFCP's sample-size curve on real data |
 | RQ3 fairness vs informativeness | singleton / set-size gaps now meaningful under the marginal regime; Cresswell's criteria computed directly |
+| sensitivity to the group definition (Phase 1, Sec. 4.1.2 / 5.3: AFCP selected age in 45 % of test points under the ≤ 25 split but 60 % under the median split, and reduced the gap only under the latter) | every dataset is run under all group definitions in the loader; selection rate and gap are plotted against the (group × bad) calibration-cell size, testing the explanation that the sensitivity is a cell-size / test-power effect rather than a substantive one |
 | new: detection power of AFCP under controlled bias | dose–response curves (Section 5); mechanistic explanation of Phase-1 non-selection (degeneracy, label veto) |
 
 ## 8. Order of work
