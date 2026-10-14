@@ -8,7 +8,33 @@ dependents as competing candidate sensitive attributes.
 
 Usage:
     python mc_give_me_credit.py <n_train_calib> <lr> <n_epoch> <seed> \
-                                <ttest_delta> <conditional_> <run_config>
+                                <ttest_delta> <conditional_> <run_config> \
+                                [<bias_group> <bias_eps> [<bias_type>]]
+
+Optional semi-synthetic bias injection (thesis extension):
+    bias_group   level of age_bin_3way to affect (0: <=35, 1: 36-55, 2: >55)
+    bias_eps     injection strength in [0, 1] (meaning depends on bias_type)
+    bias_type    "label"      (default) for a fraction bias_eps of the group's
+                              observations the label is replaced by a
+                              Bernoulli(0.5) draw ("impossible to classify",
+                              as in Zhou & Sesia's data_gen.py). Applied to
+                              the sampled subset BEFORE the split (data-
+                              generating-process level; calib/test stay
+                              exchangeable).
+                 "measure"    measurement bias / thin credit file: for a
+                              fraction bias_eps of the group's observations
+                              the three delinquency counters (30-59, 60-89,
+                              90+ days late) are set to 0, as if past
+                              delinquencies were not recorded for that group.
+                              Applied before the split (DGP level).
+                 "represent"  representation bias: a fraction bias_eps of the
+                              group's observations is removed from the
+                              TRAINING set only (historical under-
+                              representation); calibration and test keep the
+                              deployment population, so they remain
+                              exchangeable.
+    Omit the optional arguments (or set bias_eps=0) to reproduce the original
+    experiments and file names exactly.
 
 run_config:
     "age_median"      age <= median vs > median (primary)
@@ -59,9 +85,9 @@ from SelectiveCI_fairness.evals import eval_psets, eval_by_att_mc
 print("Number of arguments:", len(sys.argv), "arguments.")
 print("Argument List:", str(sys.argv))
 
-if len(sys.argv) != 8:
+if len(sys.argv) not in (8, 10, 11):
     print("Usage: python mc_give_me_credit.py <n_train_calib> <lr> <n_epoch>",
-          "<seed> <ttest_delta> <conditional_> <run_config>")
+          "<seed> <ttest_delta> <conditional_> <run_config> [<bias_group> <bias_eps> [<bias_type>]]")
     quit()
 
 n_train_calib = int(sys.argv[1])
@@ -71,6 +97,19 @@ seed = int(sys.argv[4])
 ttest_delta = float(sys.argv[5])
 conditional_ = eval(sys.argv[6])
 run_config = sys.argv[7]
+
+# Optional bias-injection arguments (see module docstring)
+if len(sys.argv) >= 10:
+    bias_group = int(sys.argv[8])
+    bias_eps = float(sys.argv[9])
+    bias_type = sys.argv[10] if len(sys.argv) == 11 else "label"
+    assert bias_group in (0, 1, 2), "bias_group must be a level of age_bin_3way (0/1/2)"
+    assert 0.0 <= bias_eps <= 1.0, "bias_eps must be in [0, 1]"
+    assert bias_type in ("label", "measure", "represent"), "bias_type must be label/measure/represent"
+else:
+    bias_group = None
+    bias_eps = 0.0
+    bias_type = "none"
 
 valid_configs = ["age_median", "age_40", "age_3way", "age_income", "age_dependents", "multi"]
 if run_config not in valid_configs:
@@ -104,6 +143,8 @@ outfile_name = (
     + "_seed"
     + str(seed)
 )
+if bias_eps > 0:
+    outfile_name += f"_bias{bias_type}_g{bias_group}_eps{bias_eps}"
 
 outfile = os.path.join(outdir, outfile_name + ".txt")
 print("Output file: {:s}".format(outfile), end="\n")
@@ -229,6 +270,34 @@ random_indices = random.sample(range(X.shape[0]), total_needed)
 X_full = X.iloc[random_indices].reset_index(drop=True)
 y_full = y.iloc[random_indices].reset_index(drop=True)
 
+# Semi-synthetic bias injection (optional) -- DGP-level variants, applied to
+# the sampled subset before the train/calib/test split so that calibration
+# and test data remain exchangeable. See module docstring.
+DELINQ_COLS = [
+    "NumberOfTime30-59DaysPastDueNotWorse",
+    "NumberOfTime60-89DaysPastDueNotWorse",
+    "NumberOfTimes90DaysLate",
+]
+if bias_eps > 0 and bias_type in ("label", "measure"):
+    rng_bias = np.random.RandomState(seed)
+    in_group = (X_full["age_bin_3way"].values == bias_group)
+    corrupt = in_group & (rng_bias.uniform(size=len(y_full)) < bias_eps)
+    print(f"\nBias injection [{bias_type}]: group age_bin_3way={bias_group}, eps={bias_eps}")
+    print(f"  in-group obs: {in_group.sum()}, affected: {corrupt.sum()}")
+    if bias_type == "label":
+        y_before = y_full.values.copy()
+        y_full = y_full.copy()
+        y_full.loc[corrupt] = rng_bias.binomial(1, 0.5, size=corrupt.sum())
+        print(f"  labels actually changed: {int((y_before != y_full.values).sum())}")
+        print(f"  default rate in group before/after: "
+              f"{y_before[in_group].mean():.4f} / {y_full.values[in_group].mean():.4f}")
+    elif bias_type == "measure":
+        X_full = X_full.copy()
+        had_delinq = (X_full.loc[corrupt, DELINQ_COLS].sum(axis=1) > 0).sum()
+        X_full.loc[corrupt, DELINQ_COLS] = 0
+        print(f"  delinquency counters zeroed; affected obs with >0 delinquencies: {int(had_delinq)}")
+        print(f"  default rate in group (unchanged): {y_full.values[in_group].mean():.4f}")
+
 # Stratified splits: GMSC is highly imbalanced (~6.7% default rate),
 # so stratification keeps the default proportion stable across splits.
 stratify_full = y_full.astype(int)
@@ -242,6 +311,18 @@ X_train, X_calib, y_train, y_calib = train_test_split(
     X_train_calib, y_train_calib, train_size=0.5, random_state=seed,
     stratify=y_train_calib.astype(int)
 )
+
+# Representation bias (optional): remove a fraction bias_eps of the target
+# group from the TRAINING set only. Calibration and test are untouched.
+if bias_eps > 0 and bias_type == "represent":
+    rng_bias = np.random.RandomState(seed)
+    in_group_tr = (X_train["age_bin_3way"].values == bias_group)
+    drop = in_group_tr & (rng_bias.uniform(size=len(X_train)) < bias_eps)
+    print(f"\nBias injection [represent]: group age_bin_3way={bias_group}, eps={bias_eps}")
+    print(f"  training obs in group before/after: {in_group_tr.sum()} / {(in_group_tr & ~drop).sum()}"
+          f"  (training set {len(X_train)} -> {(~drop).sum()})")
+    X_train = X_train.loc[~drop]
+    y_train = y_train.loc[~drop]
 
 # Explicit copies to avoid SettingWithCopyWarning during in-place preprocessing
 X_train = X_train.copy()
@@ -461,6 +542,9 @@ def complete_df_real(
     df["method"] = method
     df["conditional"] = conditional_
     df["run_config"] = run_config
+    df["bias_type"] = bias_type
+    df["bias_group"] = -1 if bias_group is None else bias_group
+    df["bias_eps"] = bias_eps
     if beta > 0:
         df["beta_threshold"] = beta * len(X_calib)
     if is_marg_results:
