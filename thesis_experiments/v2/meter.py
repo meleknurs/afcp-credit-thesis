@@ -34,6 +34,8 @@ from sklearn.preprocessing import StandardScaler
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE)); sys.path.insert(0, os.path.join(os.path.dirname(HERE), "..", "AFCP"))
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+if not hasattr(np, "Inf"):  # NumPy >= 2 removed the alias used by the unmodified AFCP code
+    np.Inf = np.inf
 from v2.data import LOADERS
 from v2.models import FITTERS, degeneracy_report, predict_prob
 from third_party.utils import nonconf_scores_mc, ProbAccum

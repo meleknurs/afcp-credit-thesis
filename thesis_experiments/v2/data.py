@@ -42,6 +42,7 @@ def load_sgc():
     meta = dict(
         name="south_german_credit",
         group_cols=["age_le25", "age_le33", "personal_status_sex"],
+        candidate_cols=["age_le25"],
         group_levels={
             "age_le25": {0: ">25", 1: "<=25"},
             "age_le33": {0: ">33", 1: "<=33"},
@@ -105,6 +106,7 @@ def load_gmsc(drop_sentinel=True):
     meta = dict(
         name="give_me_credit",
         group_cols=["age_3way", "age_lt25", "age_ge60"],
+        candidate_cols=["age_3way"],
         group_levels={"age_3way": {0: "<=35", 1: "36-55", 2: ">55"},
                       "age_lt25": {0: ">=25", 1: "<25"},
                       "age_ge60": {0: "<60", 1: ">=60"}},
@@ -130,18 +132,24 @@ def load_taiwan():
     X["marriage_grp"] = X["MARRIAGE"].astype(int)         # 1 married, 2 single, 3 others
     X["age_lt25"] = (X["AGE"] < 25).astype(int)
     X["age_3way"] = pd.cut(X["AGE"], bins=[0, 35, 55, 150], labels=[0, 1, 2], include_lowest=True).astype(int)
+    # candidate versions for AFCP's selection step: small "others" levels merged (docs/CREDIT_TAIWAN.md 1.4)
+    X["marriage_cand"] = X["marriage_grp"].replace({3: 2}).astype(int)      # others -> single
+    X["education_cand"] = X["education_grp"].replace({4: 3}).astype(int)    # others -> high school
     pay = [c for c in X.columns if c.startswith("PAY_") and not c.startswith("PAY_AMT")]
     amt = [c for c in X.columns if c.startswith("BILL_AMT") or c.startswith("PAY_AMT")] + ["LIMIT_BAL"]
     meta = dict(
         name="taiwan_credit",
         group_cols=["sex_female", "marriage_grp", "education_grp", "age_lt25", "age_3way"],
+        candidate_cols=["sex_female", "marriage_cand", "education_cand", "age_lt25"],
         group_levels={"sex_female": {0: "male", 1: "female"},
+                      "marriage_cand": {1: "married", 2: "single/others"},
+                      "education_cand": {1: "graduate", 2: "university", 3: "high school/others"},
                       "marriage_grp": {1: "married", 2: "single", 3: "others"},
                       "education_grp": {1: "graduate", 2: "university", 3: "high school", 4: "others"},
                       "age_lt25": {0: ">=25", 1: "<25"},
                       "age_3way": {0: "<=35", 1: "36-55", 2: ">55"}},
         continuous_cols=amt + ["AGE"] + pay,
-        categorical_cols=["SEX", "EDUCATION", "MARRIAGE"],
+        categorical_cols=["SEX", "EDUCATION", "MARRIAGE", "marriage_cand", "education_cand"],
         notes=[
             "Default of Credit Card Clients (Yeh & Lien 2009, UCI 350, CC BY 4.0); all 30,000 rows used.",
             f"EDUCATION codes 0/5/6 ({n_edu} rows) folded into 4 'others'; MARRIAGE 0 ({n_mar} rows) "
