@@ -1,8 +1,7 @@
 # Thesis experiments v2 — experimental design
 
-Status: DRAFT v2 (14 Oct 2026), rewritten after the literature review in
-`docs/literature/experiment_design_review.md`. Items marked **[open]** need a
-decision; everything else is the proposed default with its source.
+Status: v2 agreed 14 Oct 2026 (open items decided, see below), based on the
+literature review in `docs/literature/experiment_design_review.md`.
 
 ## 0. Why a v2
 
@@ -29,7 +28,7 @@ design from the smallest cell outward.**
 | dataset | n | positive (bad) rate | primary attribute (convention) | further candidate attributes | smallest (group × bad) cell | role |
 |---|---|---|---|---|---|---|
 | South German Credit (UCI 522, CC BY 4.0) | 1,000 | 30 % | age ≤ 25 vs > 25 (AIF360 / Kamiran & Calders 2009; 190 / 810) | `famges` (personal status; level 2 is mixed-sex, report as such) | ≈ 8 % → ~24 points per test split | small-n regime: baseline only, many splits |
-| Give Me Some Credit (Kaggle) | 150,000 | 6.7 % | age < 25 (Kozodoi et al. 2022, 2 % of rows) **[open: or ≤ 35 as in Phase 1]** | age ≥ 60 as sensitivity (non-standard) | ≈ 0.15 % (age < 25) / ≈ 1 % (≥ 60) | rare-class regime: baseline + marginal-vs-conditional comparison; large calibration/test only |
+| Give Me Some Credit (Kaggle) | 150,000 | 6.7 % | age ≤ 35 / 36–55 / > 55 (Phase 1); age < 25 (Kozodoi et al. 2022) as comparability row only | age ≥ 60 as sensitivity (non-standard) | ≈ 0.15 % (age < 25) / ≈ 1 % (≥ 60) | rare-class regime: baseline + marginal-vs-conditional comparison; large calibration/test only |
 | Default of Credit Card Clients, Taiwan (UCI 350, CC BY 4.0) | 30,000 | 22 % | sex (Le Quy et al. 2022: 24.2 % vs 20.8 % default) | marriage, education, age < 25 | ≈ 9.6 % (male × default) | **main test bed**: multi-attribute selection, bias injection, sensitivity |
 
 Decisions
@@ -38,10 +37,13 @@ Decisions
   that resolve 3–5 pp gaps in one split, free licence.
 - Foreign worker (SGC): tested in Phase 0 (52 test points, no detectable
   disparity); reported as tested-and-dropped.
-- **[open]** GMSC age group: Phase 1 used ≤ 35 / 36–55 / > 55 (cell ≈ 1.6 %);
-  the literature convention is < 25 (cell ≈ 0.15 %, near-uncalibratable at
-  AFCP scale). Default: keep Phase-1 three-level split as primary for
-  continuity, add < 25 only as a comparability row with its cell size stated.
+- GMSC age group (decided): Phase-1 three-level split stays primary for
+  continuity; the literature's < 25 cut (cell ≈ 0.12 % after cleaning) is
+  reported as a comparability row with its cell size stated.
+- Taiwan: the 'others' levels of marriage (377 rows) and education (468 rows,
+  7 % bad) are too small to serve as AFCP candidate groups; they are merged
+  into the nearest level for the candidate-attribute set (marriage others →
+  single; education others → high school) and reported separately in the EDA.
 - A per-dataset **cell-count table** (train / calib / test counts for every
   group × label cell) is produced by the data script and goes in the thesis.
 
@@ -51,7 +53,7 @@ Decisions
   positive class; no other changes. One paragraph in the thesis on why
   `german.data-numeric` (Phase 0) was replaced.
 - GMSC: drop the 269 rows with sentinel 96/98 in the delinquency counters
-  (all three counters carry it simultaneously) **[open: drop vs cap + flag]**;
+  (all three counters carry it simultaneously) — decided: drop;
   drop age = 0; de-duplicate (609 rows); MonthlyIncome and NumberOfDependents
   → training median plus a missing indicator; log1p-transform
   RevolvingUtilization, DebtRatio, MonthlyIncome. State that no fairness
@@ -107,8 +109,8 @@ Decisions
 - Cost note: full AFCP ≈ 2 s per test point per adaptive method. Large test
   sets are used with the fast meter (marginal CP + analytic reproduction of
   the AFCP selection test); full AFCP runs use n_test = 1,000–2,000 and ≥ 10
-  seeds, parallelised on the laptop. **[open]** GitHub Actions for the
-  Taiwan grid if the laptop budget is exceeded.
+  seeds, parallelised on the laptop; GitHub Actions for the Taiwan grid if
+  the laptop budget is exceeded (decided).
 - Seeds: 10 (2023–2032) for all full runs; 100 splits for SGC via the meter.
 - AFCP settings: `ttest_delta` ∈ {0, 0.02, 0.05} and t-test level ∈ {0.05,
   0.10} as a sensitivity sweep on Taiwan (code default 0.10; paper says 5 %).
@@ -124,7 +126,7 @@ Mechanisms, following the review's effectiveness ranking:
 | **label bias (primary)** | one-sided: fraction f of the disadvantaged group's *good* labels flipped to *bad* (Ceccon et al. 2025; Bias on Demand measurement bias on Y) | (a) train only; (b) train + calibration (Einbinder et al. 2022 protocol); test always clean | f ∈ {0, 0.05, 0.10, 0.20, 0.30, 0.40} | 10 | to implement (replaces the symmetric Bernoulli(0.5) noise of the 13 Oct pilot, which the literature and our pilot show only inflates sets) |
 | representation bias | retain share r of the disadvantaged group in training | train only | r ∈ {1, 0.5, 0.2, 0.1} | ≥ 30 | framed as a variance experiment (Pombal et al. 2022; Zhioua et al. 2025) |
 | measurement bias (negative control) | zero the payment-history fields for a fraction of the group | train + calibration | {0, 0.5, 1.0} | 10 | implemented; no disparity on GMSC pilot — kept as control |
-| score-shift (optional) | shift the logit of the group by β before thresholding (Legast et al. 2026) | train + calibration | β grid tbd | 10 | **[open]** only if time permits |
+| score-shift (optional) | shift the logit of the group by β before thresholding (Legast et al. 2026) | train + calibration | β grid tbd | 10 | only if time permits |
 
 - Same data partition reused across bias levels within a seed (Legast et al.)
   so dose–response curves are clean.

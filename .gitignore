@@ -64,3 +64,7 @@ thesis_experiments/results/give_me_credit/raw/*.txt
 thesis_experiments/results/give_me_credit/sample_size_sweep/raw/
 # Claude runner queue (local only)
 .claude_queue/
+
+# UCI Taiwan credit-card default data is CC BY 4.0: tracked
+!data/default_credit_card_clients.csv
+!data/default_credit_card_clients.sha256
