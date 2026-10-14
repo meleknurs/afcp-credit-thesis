@@ -64,9 +64,76 @@ highest default rate (0.296, n = 405), men aged 36–55 the second highest (0.25
 Produced by `thesis_experiments/v2/eda_taiwan.py`; tables in
 `thesis_experiments/results/v2/eda_taiwan_tables.md`.
 
-## 2. Experiments
+## 2. Experiments (v2)
 
-*(v2 — to be filled as the baseline, calibration-sweep and bias-injection runs complete.)*
+All runs: n_train = n_calib = 6,000, n_test = 500, α = 0.1, 10 seeds (2023–2032),
+original AFCP code (t-test δ = 0, sig_level = 0.1), neural network with early stopping
+(dropout, patience 20) or logistic regression. Raw per-run files:
+`thesis_experiments/results/v2/afcp/taiwan/`.
+
+### 2.1 Baseline (clean data)
+
+Overall coverage / mean set size, averaged over 10 seeds (`cal_auroc` ≈ 0.76 NN, 0.72 LR):
+
+| model | calibration | Marginal | Partial | Exhaustive | Adaptive (AFCP) | AFCP: selects sex / education / age<25 / none |
+|---|---|---|---|---|---|---|
+| NN | marginal (`conditional=False`) | 0.902 / 1.34 | 0.908 / 1.37 | 0.906 / 1.35 | 0.906 / 1.36 | 0.00 / 0.28 / 0.30 / 0.42 |
+| NN | label-conditional (`conditional=True`) | 0.906 / 1.69 | 0.912 / 1.72 | 0.908 / 1.71 | 0.905 / 1.69 | 0.00 / 0.10 / 0.00 / 0.90 |
+| LR | marginal | 0.904 / 1.40 | 0.908 / 1.42 | 0.906 / 1.41 | 0.903 / 1.41 | 0.10 / 0.10 / 0.30 / 0.50 |
+| LR | label-conditional | 0.902 / 1.72 | 0.907 / 1.75 | 0.901 / 1.74 | 0.901 / 1.72 | 0.00 / 0.20 / 0.00 / 0.80 |
+
+Coverage by sex (NN, marginal): men 0.904 / women 0.900 (Marginal), set sizes 1.38 / 1.31.
+No sex disparity on clean data; AFCP never selects sex at baseline. The label-conditional
+regime costs ≈ 0.35 in set size and makes AFCP select nothing in 80–90 % of seeds.
+
+### 2.2 Bias injection into women (train + calibration, test clean; NN, marginal regime)
+
+Two directions, ε = share of women's labels flipped. Summary CSV:
+`thesis_experiments/results/v2/taiwan_injection_summary.csv`; figure below.
+
+**Stigma (good → bad relabel):**
+
+| ε | cov women (Marginal) | cov men | set size women / men | AFCP selects sex |
+|---|---|---|---|---|
+| 0 | 0.900 | 0.904 | 1.31 / 1.38 | 0.00 |
+| 0.05 | 0.921 | 0.904 | – | 0.00 |
+| 0.10 | 0.932 | 0.910 | – | 0.20 |
+| 0.20 | 0.943 | 0.915 | – | 0.20 |
+| 0.30 | 0.951 | 0.916 | 1.74 / – | 0.40 |
+| 0.40 | 0.928 | 0.916 | – | 0.40 |
+
+**Hidden defaults (bad → good relabel):**
+
+| ε | cov women (Marginal) | cov men | gap | cov women Partial / Exhaustive | AFCP selects sex |
+|---|---|---|---|---|---|
+| 0 | 0.900 | 0.904 | 0.02 | 0.906 / 0.905 | 0.00 |
+| 0.10 | 0.896 | 0.896 | – | – | 0.18 |
+| 0.20 | 0.887 | 0.903 | – | – | 0.30 |
+| 0.30 | 0.875 | 0.899 | – | – | 0.40 |
+| 0.50 | 0.847 | 0.894 | 0.09 | – | 0.50 |
+| 0.70 | 0.801 | 0.891 | 0.12 | 0.806 / 0.788 | 0.60 |
+
+![Taiwan detection curves](./figures/taiwan_detection_curves.png)
+
+Reading of the two directions (to be developed in the thesis):
+
+- Stigma makes the model over-predict default for women; marginal CP then *over-covers*
+  women (0.90 → 0.95) with larger sets (1.31 → 1.74). The disparity is in **informativeness**,
+  not coverage.
+- Hidden defaults make the model under-predict default for women; marginal CP *under-covers*
+  women (0.90 → 0.80 at ε = 0.7) while men stay at ≈ 0.90. This is a **coverage disparity**
+  of up to 12 pp.
+- AFCP's selection of sex rises monotonically with ε in both directions (0 → 0.4 stigma,
+  0 → 0.6 hidden defaults). Selection is essentially a per-seed decision: within a seed the
+  LOO t-test flags (almost) all or none of the test points, and the label-0 and label-1 flags
+  coincide, so the label-intersection veto is not what limits detection here.
+- Because the calibration set carries the same corrupted labels as the training set, the
+  group-conditional methods (Partial, Exhaustive, Adaptive) **do not restore** women's coverage
+  on the clean test set (0.79–0.81 at ε = 0.7): equalized coverage is guaranteed w.r.t. the
+  calibration labels, not the true labels. This is the central methodological point.
+
+Pending: same grid under the label-conditional regime; train-only injection (ε 0.2, 0.5);
+sensitivity to `ttest_delta` / `sig_level`; LR half-grid.
 
 ## References
 
