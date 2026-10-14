@@ -9,7 +9,7 @@ Usage:
     model    nn | lr
     seeds    e.g. 2023,2024
     configs  comma-separated  <bias_type>:<group_col>:<level>:<eps>:<scope>
-             bias_type  none | label | represent | measure(gmsc only)
+             bias_type  none | label (good->bad) | labelneg (bad->good) | represent | measure(gmsc only)
              group_col  a group column of the dataset (e.g. age_3way, sex_female)
              level      the level to bias (target group)
              eps        strength
@@ -56,10 +56,14 @@ def inject(X, y, cfg, rng, is_train):
     if cfg["eps"] <= 0 or cfg["bias_type"] == "none":
         return X, y
     tgt = (X[cfg["group_col"]].values == cfg["level"])
-    if cfg["bias_type"] == "label":
+    if cfg["bias_type"] == "label":          # "stigma": good -> bad in the target group
         cand = tgt & (y.values == 0)
         flip = cand & (rng.uniform(size=len(y)) < cfg["eps"])
         y.iloc[np.where(flip)[0]] = 1
+    elif cfg["bias_type"] == "labelneg":     # "hidden defaults": bad -> good in the target group (Fogliato et al. 2020)
+        cand = tgt & (y.values == 1)
+        flip = cand & (rng.uniform(size=len(y)) < cfg["eps"])
+        y.iloc[np.where(flip)[0]] = 0
     elif cfg["bias_type"] == "measure":
         hit = tgt & (rng.uniform(size=len(y)) < cfg["eps"])
         X.loc[hit, GMSC_DELINQ] = 0
