@@ -357,7 +357,29 @@ Summary: `thesis_experiments/results/v2/gmsc_injection_summary.csv`.
 - Standard errors are larger than on Taiwan (SD of young-group coverage across seeds ≈ 0.05;
   the young group has ≈ 120 test points per seed).
 
-Pending: label-conditional regime at one dose; LR at one dose.
+### 3.3 Train-only injection: is AFCP's silence due to calibration contamination? (ε = 0.7)
+
+Same hidden-defaults injection applied to the training set only (calibration and test clean),
+10 seeds. Young-group coverage and AFCP selection:
+
+| scope | Marginal | Partial (= Exhaustive) | Adaptive | AFCP selects age | flag label 0 / 1 |
+|---|---|---|---|---|---|
+| none (ε = 0) | 0.894 | 0.903 | 0.898 | 0.20 | 0.20 / 0.20 |
+| train only | 0.846 | 0.892 | 0.862 | 0.10 | 0.10 / 0.11 |
+| train + cal | 0.841 | 0.837 | 0.851 | 0.20 | 0.20 / 0.20 |
+
+- With a clean calibration set, Partial / Exhaustive **do** restore the young group to ≈ 0.89
+  (as on Taiwan, §2.4 there).
+- The candidate explanation in 3.2 is **not supported**: AFCP still does not select age when
+  the calibration labels are clean (0.10; the one selecting seed, 2027, also selects at
+  ε = 0). On GMSC the LOO test does not register a 5 pp group under-coverage even when the
+  calibration set is uncontaminated. Remaining candidates: near-singleton sets (LOO
+  miscoverage is a 0/1 variable concentrated on the 6.7 % defaulters, so the group difference
+  in calibration is small in absolute terms), and the one-sample t-test with δ = 0 and
+  sig_level 0.1 being conservative for this effect size. The `ttest_delta` / `sig_level`
+  sensitivity run (optional) would separate these.
+
+Pending (optional): label-conditional regime at one dose; LR at one dose; `sig_level` sweep.
 
 ## References
 
