@@ -306,6 +306,59 @@ single "selected attribute" output as a complete fairness assessment (Section 5.
 
 ---
 
+## 3. v2 experiments (October 2026)
+
+Section 2 documents the Phase-1 pilot (500-epoch NN, label-conditional calibration, n_test
+up to 16,000). The v2 pipeline (`thesis_experiments/v2/`, see `docs/V2_DESIGN.md`) re-runs
+GMSC with an early-stopped NN or logistic regression, n_train = n_calib = 6,000,
+n_test = 500, both calibration regimes, 10 seeds. Raw files: `thesis_experiments/results/v2/afcp/gmsc/`.
+
+### 3.1 Baseline (clean data)
+
+| model | calibration | Marginal cov / size | Partial | Exhaustive | Adaptive | AFCP selects age / none |
+|---|---|---|---|---|---|---|
+| NN | marginal | 0.903 / 1.03 | 0.903 / 1.04 | 0.903 / 1.04 | 0.903 / 1.04 | 0.20 / 0.80 |
+
+(`cal_auroc` ≈ 0.84; label-conditional and LR rows in the raw files.) Coverage by age
+(NN, marginal, Marginal method): ≤ 35: 0.894, 36–55: 0.903, > 55: 0.907. Sets are
+near-singleton (mean size ≈ 1.03) because the default rate is 6.7 %: the marginal quantile
+is met almost entirely by covering non-defaulters, so defaulters are rarely covered.
+
+### 3.2 Hidden-defaults injection into the ≤ 35 group (NN, marginal regime, train + cal)
+
+ε = share of the young group's default labels flipped to non-default; test clean; 10 seeds.
+Summary: `thesis_experiments/results/v2/gmsc_injection_summary.csv`.
+
+| ε | cov ≤ 35 (Marginal) | cov 36–55 / > 55 | gap | cov ≤ 35 Partial (= Exhaustive) / Adaptive | set size ≤ 35 | AFCP selects age |
+|---|---|---|---|---|---|---|
+| 0 | 0.894 | 0.903 / 0.907 | 0.01 | 0.903 / 0.898 | 1.06 | 0.20 |
+| 0.3 | 0.881 | 0.903 / 0.910 | 0.03 | 0.879 / 0.881 | 1.03 | 0.20 |
+| 0.5 | 0.866 | 0.899 / 0.909 | 0.04 | 0.855 / 0.866 | 0.99 | 0.20 |
+| 0.7 | 0.841 | 0.893 / 0.909 | 0.06 | 0.837 / 0.851 | 0.95 | 0.20 |
+
+![GMSC detection curves](./figures/gmsc_detection_curves.png)
+
+- The **coverage disparity replicates**: the young group's coverage falls monotonically with
+  ε (0.89 → 0.84, gap 0.01 → 0.06), the other two groups stay at nominal. The effect is about
+  half the size of the Taiwan effect (women 0.90 → 0.80 at ε = 0.7), consistent with the
+  rarer positive class and the smaller group share.
+- Partial / Exhaustive (identical here: a single candidate attribute) do **not** restore the
+  young group's coverage — the same calibration-contamination mechanism as on Taiwan
+  (`CREDIT_TAIWAN.md` §2.2, §2.4).
+- The **AFCP detection signal does not replicate**: the selection rate is 0.20 at every dose,
+  and it is the same two seeds (2023, 2027) that select age at ε = 0 and at ε = 0.7. On GMSC
+  the decision is seed-driven, not dose-driven. A candidate explanation, to be checked: with
+  near-singleton sets the LOO miscoverage of the young calibration group is driven by its
+  (few) labelled defaulters, and hidden-defaults removes exactly those, so the calibration
+  evidence of under-coverage disappears while the test-set under-coverage grows.
+- Mean set size for the young group drops below 1 at ε ≥ 0.5 (empty sets appear): the
+  marginal quantile, calibrated on a set with fewer labelled defaults, becomes less
+  conservative.
+- Standard errors are larger than on Taiwan (SD of young-group coverage across seeds ≈ 0.05;
+  the young group has ≈ 120 test points per seed).
+
+Pending: label-conditional regime at one dose; LR at one dose.
+
 ## References
 
 - Yeh, I.-C. (2011). Give Me Some Credit. Kaggle Competition Dataset. Retrieved from
