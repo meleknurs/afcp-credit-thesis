@@ -132,8 +132,59 @@ Reading of the two directions (to be developed in the thesis):
   on the clean test set (0.79–0.81 at ε = 0.7): equalized coverage is guaranteed w.r.t. the
   calibration labels, not the true labels. This is the central methodological point.
 
-Pending: same grid under the label-conditional regime; train-only injection (ε 0.2, 0.5);
-sensitivity to `ttest_delta` / `sig_level`; LR half-grid.
+### 2.3 Same injection under the label-conditional regime (NN, `conditional=True`)
+
+Grid: stigma ε ∈ {0.1, 0.2, 0.3}, hidden defaults ε ∈ {0.2, 0.3, 0.5, 0.7}, train + calibration,
+10 seeds. Full table in `thesis_experiments/results/v2/taiwan_injection_summary_all.csv`.
+
+| direction | ε | cov women / men (Marginal) | cov women Partial / Exhaustive | AFCP selects sex | flag label 0 / label 1 |
+|---|---|---|---|---|---|
+| none | 0 | 0.903 / 0.912 | 0.910 / 0.911 | 0.00 | 0.10 / 0.00 |
+| stigma | 0.2 | 0.935 / 0.878 | 0.939 / 0.913 | 0.10 | 0.30 / 0.10 |
+| stigma | 0.3 | 0.931 / 0.883 | 0.937 / 0.915 | 0.00 | 0.20 / 0.10 |
+| hidden defaults | 0.3 | 0.898 / 0.921 | 0.911 / 0.912 | 0.17 | 0.20 / 0.27 |
+| hidden defaults | 0.5 | 0.881 / 0.921 | 0.906 / 0.911 | 0.20 | 0.20 / 0.30 |
+| hidden defaults | 0.7 | 0.860 / 0.936 | 0.902 / 0.904 | 0.20 | 0.20 / 0.40 |
+
+![Taiwan detection curves, label-conditional](./figures/taiwan_detection_curves_condTrue.png)
+
+- Under the label-conditional regime the coverage disparity is smaller than under the
+  marginal regime (women 0.86 vs 0.80 at ε = 0.7) and Partial / Exhaustive **do** bring
+  women back to ≈ 0.90 even though the calibration labels are corrupted: the defaulters that
+  remain labelled are genuine, so the per-label quantile for the default class stays valid.
+- Stigma now also pushes **men** below nominal (0.88): the pooled per-label quantiles are
+  dominated by the inflated female default class.
+- AFCP selection is weak here (≤ 0.2) and the label-0 and label-1 flags differ (0.20 vs 0.40
+  at ε = 0.7): in this regime the label-intersection veto *is* the limiting factor — the
+  pattern seen in the Phase-1 pilot.
+- Set sizes are ≈ 1.7 throughout (vs ≈ 1.35 in the marginal regime).
+
+### 2.4 Train-only injection: does a clean calibration set restore coverage? (NN, marginal regime)
+
+Same injection applied to the training set only; calibration and test clean. ε = 0.2 (stigma)
+and 0.5 (hidden defaults), 10 seeds. Women's coverage on the clean test set:
+
+| direction, ε | scope | Marginal | Partial | Exhaustive | Adaptive |
+|---|---|---|---|---|---|
+| stigma 0.2 | train only | 0.918 | 0.923 | 0.905 | 0.920 |
+| stigma 0.2 | train + cal | 0.943 | 0.948 | 0.948 | 0.945 |
+| hidden defaults 0.5 | train only | 0.885 | 0.904 | 0.905 | 0.887 |
+| hidden defaults 0.5 | train + cal | 0.847 | 0.851 | 0.838 | 0.843 |
+| (no injection) | – | 0.900 | 0.906 | 0.904 | 0.904 |
+
+![Taiwan scope comparison](./figures/taiwan_scope_comparison.png)
+
+- With a clean calibration set, Exhaustive and Partial equalized coverage restore women to
+  ≈ 0.90 in both directions; with a corrupted calibration set none of the methods do. This
+  is the direct evidence for the point made in 2.2: group-conditional CP equalizes coverage
+  with respect to the labels it is calibrated on.
+- Adaptive stays close to Marginal in the train-only setting because AFCP rarely selects
+  sex when the calibration labels are clean (0.1–0.4).
+- Train-only stigma at ε = 0.5 (not in the table) lowers women's coverage to 0.87 under
+  Marginal: a model that over-predicts default for women is miscalibrated for them even when
+  the calibration labels are correct; Exhaustive restores 0.90.
+
+Pending: sensitivity to `ttest_delta` / `sig_level`; LR half-grid.
 
 ## References
 
