@@ -184,7 +184,28 @@ and 0.5 (hidden defaults), 10 seeds. Women's coverage on the clean test set:
   Marginal: a model that over-predicts default for women is miscalibrated for them even when
   the calibration labels are correct; Exhaustive restores 0.90.
 
-Pending: sensitivity to `ttest_delta` / `sig_level`; LR half-grid.
+### 2.5 Logistic regression (robustness to the classifier; marginal regime, train + cal)
+
+Same injection with the logistic-regression classifier (`cal_auroc` ≈ 0.72 vs 0.76 for the
+NN), ε ∈ {0.2, 0.5}, 10 seeds. Women's / men's coverage under the Marginal method and
+AFCP's selection rate:
+
+| direction, ε | NN: women / men | NN: AFCP sel. | LR: women / men | LR: AFCP sel. |
+|---|---|---|---|---|
+| none | 0.900 / 0.904 | 0.00 | 0.899 / 0.912 | 0.10 |
+| stigma 0.2 | 0.943 / 0.915 | 0.20 | 0.944 / 0.914 | 0.30 |
+| stigma 0.5 | (0.928 / 0.916 at ε = 0.4) | 0.40 | 0.820 / 0.918 | 0.40 |
+| hidden defaults 0.2 | 0.887 / 0.903 | 0.30 | 0.879 / 0.911 | 0.20 |
+| hidden defaults 0.5 | 0.847 / 0.894 | 0.50 | 0.821 / 0.913 | 0.40 |
+
+- The two classifiers agree to within ≈ 1 pp at ε = 0.2 in both directions and in AFCP's
+  selection rate; the findings in 2.2 are not NN-specific.
+- Stigma is non-monotone: at ε = 0.5 (LR) women's coverage drops to 0.82 — once most
+  women are labelled as defaulters the model under-covers the (truly good) majority. The NN
+  grid shows the turn at ε = 0.4 (0.951 → 0.928). Stigma at moderate doses produces
+  over-coverage with larger sets; at high doses it becomes under-coverage.
+
+Pending: sensitivity to `ttest_delta` / `sig_level` (optional).
 
 ## References
 
