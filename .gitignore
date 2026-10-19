@@ -62,7 +62,8 @@ thesis_experiments/results/give_me_credit/raw/*.txt
 # Table 4 (GMSC sample-size sweep): keep only the 5-seed combined summary,
 # ignore the raw per-seed sweep files it's built from
 thesis_experiments/results/give_me_credit/sample_size_sweep/raw/
-# Claude runner queue (local only)
+# local runner queue (local only)
+.runner_queue/
 .claude_queue/
 
 # UCI Taiwan credit-card default data is CC BY 4.0: tracked
