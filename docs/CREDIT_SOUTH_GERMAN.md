@@ -355,3 +355,32 @@ should be interpreted cautiously given the limited calibration sample sizes (n�
 for the smallest subgroups). This pattern is consistent with the thesis's broader
 finding that AFCP's adaptive mechanisms are sensitive to both calibration sample
 size and group-balance; primary analyses take precedence over exploratory results.
+
+## 3. v2 baseline (October 2026)
+
+Section 2 documents the Phase-1 pilot (5 seeds, 500-epoch NN, label-conditional calibration).
+The v2 pipeline re-runs the primary configuration with the early-stopped NN and logistic
+regression, n_train = n_calib = 350, n_test = 300 (all 1,000 rows used), both calibration
+regimes, 10 seeds (2023–2032). Raw files: `thesis_experiments/results/v2/afcp/sgc/`; summary:
+`thesis_experiments/results/v2/sgc_baseline_summary.csv`. No injection on SGC: the
+(group × label) calibration cells are too small (≈ 20–50 points).
+
+Coverage by age (Marginal method; age ≤ 25 / > 25), AFCP selection rate for age:
+
+| model | regime | overall cov / size | ≤ 25 | > 25 | AFCP selects age / none |
+|---|---|---|---|---|---|
+| NN | marginal | 0.896 / 1.62 | 0.888 | 0.898 | 0.30 / 0.70 |
+| NN | label-conditional | 0.902 / 1.69 | 0.893 | 0.905 | 0.30 / 0.70 |
+| LR | marginal | 0.896 / 1.45 | 0.892 | 0.897 | 0.30 / 0.70 |
+| LR | label-conditional | 0.901 / 1.62 | 0.908 | 0.900 | 0.30 / 0.70 |
+
+(`cal_auroc` 0.74 NN, 0.77 LR; across-seed SD of the ≤ 25 group's coverage ≈ 0.05 — the
+group has ≈ 55 test points per seed.)
+
+- No age disparity beyond noise in either regime; median split (≤ 33 / > 33) gives the same
+  picture (≤ 33: 0.88–0.89, > 33: 0.90–0.92).
+- Set sizes are large (1.45–1.69 of a maximum 2) because the classifier is weak on 350
+  training rows: SGC illustrates the small-n regime in which conformal sets carry little
+  information regardless of the fairness method.
+- AFCP selects age in 3 of 10 seeds in every configuration — the same seed-level, non-dose
+  behaviour as on GMSC (`CREDIT_GMSC.md` §3.2).

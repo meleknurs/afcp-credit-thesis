@@ -205,7 +205,33 @@ AFCP's selection rate:
   grid shows the turn at ε = 0.4 (0.951 → 0.928). Stigma at moderate doses produces
   over-coverage with larger sets; at high doses it becomes under-coverage.
 
-Pending: sensitivity to `ttest_delta` / `sig_level` (optional).
+### 2.6 Adaptive1: AFCP without the hypothesis test (hidden defaults, marginal regime)
+
+AFCP–Adaptive runs a one-sample t-test per label before accepting an attribute; Adaptive1
+skips the test and always takes the worst-covered attribute. Re-run of the baseline and the
+hidden-defaults ε ∈ {0.3, 0.7} configurations with both variants, NN, train + cal, 10 seeds
+(`thesis_experiments/results/v2/taiwan_adaptive1_summary.csv`):
+
+| ε | variant | women cov | men cov | women set size | selects sex | selects none |
+|---|---|---|---|---|---|---|
+| 0 | Adaptive | 0.904 | 0.909 | 1.33 | 0.00 | 0.42 |
+| 0 | Adaptive1 | 0.904 | 0.909 | 1.33 | 0.10 | 0.02 |
+| 0.3 | Adaptive | 0.873 | 0.905 | 1.22 | 0.40 | 0.40 |
+| 0.3 | Adaptive1 | 0.874 | 0.906 | 1.22 | 0.60 | 0.07 |
+| 0.7 | Adaptive | 0.799 | 0.903 | 1.04 | 0.60 | 0.40 |
+| 0.7 | Adaptive1 | 0.799 | 0.906 | 1.04 | 0.70 | 0.00 |
+
+- Dropping the test raises the selection rate for sex by 0.1–0.2 at ε > 0, but also produces a
+  false positive at ε = 0 (0.10) and makes the method select *some* attribute in almost every
+  seed (`selects none` ≈ 0): without the test AFCP is a "pick the worst group" rule, not a
+  detector.
+- Coverage and set size are indistinguishable between the two variants: whichever attribute
+  is selected, the group-conditional threshold is computed on the corrupted calibration
+  labels, so women's coverage is not restored (§2.2, §2.4).
+- Per seed, the two variants mostly agree; the extra Adaptive1 selections are seeds where the
+  t-test p-value was above 0.1 for one of the two labels.
+
+Pending (optional): sensitivity to `ttest_delta` / `sig_level`.
 
 ## References
 
