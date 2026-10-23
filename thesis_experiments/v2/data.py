@@ -162,7 +162,23 @@ def load_taiwan():
     return X, y, meta
 
 
-LOADERS = {"sgc": load_sgc, "gmsc": load_gmsc, "taiwan": load_taiwan}
+def load_gmsc_multi():
+    """GMSC with three candidate attributes (pilot multi-attribute analysis): age_3way, income_hi, dependents_any."""
+    X, y, meta = load_gmsc()
+    inc = X["MonthlyIncome"]
+    X["income_hi"] = (inc.fillna(inc.median()) >= inc.median()).astype(int)
+    X["dependents_any"] = (X["NumberOfDependents"].fillna(0) >= 1).astype(int)
+    meta = dict(meta)
+    meta["group_cols"] = meta["group_cols"] + ["income_hi", "dependents_any"]
+    meta["candidate_cols"] = ["age_3way", "income_hi", "dependents_any"]
+    meta["group_levels"] = dict(meta["group_levels"], income_hi={0: "below median", 1: "median or above"},
+                                dependents_any={0: "none", 1: "one or more"})
+    meta["continuous_cols"] = [c for c in meta["continuous_cols"] if c not in ("income_hi", "dependents_any")]
+    meta["notes"] = list(meta["notes"]) + ["gmsc_multi: candidate attributes age_3way, income_hi (median split), dependents_any."]
+    return X, y, meta
+
+
+LOADERS = {"sgc": load_sgc, "gmsc": load_gmsc, "gmsc_multi": load_gmsc_multi, "taiwan": load_taiwan}
 
 
 def cell_counts(X, y, group_col, levels=None):

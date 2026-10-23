@@ -41,7 +41,7 @@ from v2.models import FITTERS, degeneracy_report, predict_prob
 from third_party.utils import nonconf_scores_mc, ProbAccum
 
 ALPHA = 0.1
-DEFAULT_SIZES = {"sgc": (350, 350, 300), "gmsc": (6000, 6000, 5000), "taiwan": (6000, 6000, 10000)}
+DEFAULT_SIZES = {"sgc": (350, 350, 300), "gmsc": (6000, 6000, 5000), "gmsc_multi": (6000, 6000, 5000), "taiwan": (6000, 6000, 10000)}
 GMSC_DELINQ = ["NumberOfTime30-59DaysPastDueNotWorse", "NumberOfTime60-89DaysPastDueNotWorse", "NumberOfTimes90DaysLate"]
 
 

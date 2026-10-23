@@ -42,18 +42,23 @@ class LoggingAdaptive(Adaptive_Selection):
 
 def main():
     ds, model_name, seed, cfg_s, conditional = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5] == "True"
+    ds_full = ds; ds, _, cand_override = ds.partition("@")   # e.g. sgc@age_le33  or  gmsc@age_lt25 : override the AFCP candidate attribute(s), "+" separated
+    ds_tag = ds_full.replace("@", "-").replace("+", "_")
     opts = dict(kv.split("=") for kv in sys.argv[6:])
     sizes = DEFAULT_SIZES[ds][:2] + (1000,)
     n_tr, n_cal, n_te = int(opts.get("n_train", sizes[0])), int(opts.get("n_calib", sizes[1])), int(opts.get("n_test", sizes[2]))
     ttest_delta = float(opts.get("ttest_delta", 0)); sig_level = float(opts.get("sig_level", 0.1))
     run_adaptive1 = opts.get("adaptive1", "0") == "1"
     cfg = parse_config(cfg_s)
-    out_dir = opts.get("out_dir", os.path.join(os.path.dirname(HERE), "results", "v2", "afcp", ds)); os.makedirs(out_dir, exist_ok=True)
-    tag = f"{ds}_{model_name}_ntr{n_tr}_ncal{n_cal}_nte{n_te}_cond{conditional}_td{ttest_delta}_sl{sig_level}_seed{seed}"
+    out_dir = opts.get("out_dir", os.path.join(os.path.dirname(HERE), "results", "v2", "afcp", "rq4_groupdef" if cand_override else ds)); os.makedirs(out_dir, exist_ok=True)
+    tag = f"{ds_tag}_{model_name}_ntr{n_tr}_ncal{n_cal}_nte{n_te}_cond{conditional}_td{ttest_delta}_sl{sig_level}_seed{seed}"
     if cfg["eps"] > 0: tag += f"_bias{cfg['bias_type']}_{cfg['group_col']}{cfg['level']}_eps{cfg['eps']}_{cfg['scope']}"
     outfile = os.path.join(out_dir, tag + ".txt"); print("Output:", outfile)
 
     X_all, y_all, meta = LOADERS[ds]()
+    if cand_override:
+        meta = dict(meta); meta["candidate_cols"] = cand_override.split("+")
+        assert all(c in X_all.columns for c in meta["candidate_cols"]), f"unknown candidate column in {cand_override}"
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
     idx = random.sample(range(len(y_all)), n_tr + n_cal + n_te)
     X = X_all.iloc[idx].reset_index(drop=True); y = y_all.iloc[idx].reset_index(drop=True)
@@ -80,7 +85,7 @@ def main():
 
     def finish(df, method, k_hat=None, logsel=None):
         df["n_data"] = n_tr + n_cal; df["n_train"] = n_tr; df["n_calib"] = n_cal; df["seed"] = seed; df["alpha"] = ALPHA
-        df["method"] = method; df["conditional"] = conditional; df["model"] = model_name; df["dataset"] = ds
+        df["method"] = method; df["conditional"] = conditional; df["model"] = model_name; df["dataset"] = ds; df["cand_def"] = cand_override or "default"
         df["run_config"] = cfg_s; df["bias_type"] = cfg["bias_type"]; df["bias_group"] = cfg["group_col"]; df["bias_level"] = cfg["level"]
         df["bias_eps"] = cfg["eps"]; df["bias_scope"] = cfg["scope"]; df["ttest_delta"] = ttest_delta; df["sig_level"] = sig_level
         df["best_epoch"] = model.info.get("best_epoch", np.nan); df["cal_auroc"] = deg["auroc"]; df["cal_deg_pos"] = deg["share_ptrue_lt_tol_pos"]
