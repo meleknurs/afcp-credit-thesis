@@ -92,9 +92,28 @@ Karar: pilotun tüm deneyleri v2'de tekrar edilir, teze alınacak olanlar sonra 
 **Ne anlama geliyor.** Pilottaki "sample size arttıkça AFCP seçmeye başlıyor" hikâyesi bu verilerde desteklenmiyor: seçim **hangi seed'in (hangi veri örneğinin) çekildiğine** bağlı; daha fazla calibration verisi bunu belirgin değiştirmiyor (en fazla en küçük boyutta etkisi var). Pilot sweep'in karışıklığı bu yüzden sorun olmadı ama doğru tasarımla (calibration-only) bunu söyleyebiliyoruz. Taiwan'da etki zaten büyük (kadın 0.85), veri artsa da coverage düzelmiyor çünkü calibration label'ları bozuk.
 Rakamlar: `results/v2/gmsc_sweep_summary.csv`, `results/v2/taiwan_sweep_summary.csv`.
 
-**Henüz bitmeyenler**
-- ⏳ GMSC multi-attribute (age+income+dependents, Adaptive1 dahil) — Mac'te koşuyor.
-- ⏳ Group-definition tablosu (SGC ≤25 vs ≤33, GMSC, Taiwan age<25 vs 3'lü) = RQ4.
+## Adım 10 — GMSC çoklu attribute (age + income + dependents)
+
+**Ne yaptım.** Pilotun "multi-attribute" deneyini GMSC'de v2 ile tekrarladım: tek attribute yerine üç aday (age 3'lü, income yüksek/düşük, dependents var/yok), Marginal / Partial / Exhaustive / AFCP / Adaptive1, 5 seed.
+**Neden.** Pilotta AFCP çoklu attribute'ta "hep boş küme" seçmişti; bunun gerçek mi yoksa overfit'li NN'in eseri mi olduğunu görmek istiyorum.
+**Ne çıktı.** Pilottaki "her zaman boş" davranışı **tekrarlanmadı**. Veto mekanizması hâlâ var (bir label'da bayrak çıkınca attribute elenebiliyor) ama sistematik değil.
+**Ne anlama geliyor.** Pilottaki boşluk büyük ihtimalle overfit'li NN + sessiz label-conditional ayarının sonucuydu, yönteme ait bir özellik değil.
+Tablolar: `results/v2/afcp/gmsc_multi/` (10 dosya).
+
+## Adım 11 — Grup tanımı (RQ4): sonuç "grup nasıl tanımlandığına" bağlı mı?
+
+**Ne yaptım.** Aynı veride, **bias enjekte etmeden (temiz veri)**, aynı attribute'u farklı kesimlerle tanımladım ve her tanım için tüm yöntemleri koştum: SGC age ≤25 vs ≤33; GMSC age <25 vs ≥60; Taiwan age <25 vs 3'lü yaş. Toplam 120 koşu (SGC 10 seed × nn/lr × iki regime, GMSC 5 seed, Taiwan 10 seed).
+**Neden.** "Korunan grup" tez verisinde kendiliğinden belli değil; kesim noktası değişince "en kötü grup" ve yöntemlerin sıralaması değişiyor mu, bilmem lazım.
+**Ne çıktı (worst-group coverage / gap; hedef 0.90).**
+- **SGC (NN, marginal regime):** ≤25 → en küçük grup test'te ≈57 kişi; Marginal worst 0.871, gap 0.042; Partial 0.882; AFCP 0.873; Adaptive1 0.879. ≤33 → ≈142 kişi; Marginal 0.879, gap 0.035; Partial 0.880; AFCP 0.878; Adaptive1 0.887. Yöntemler arası fark ≤ ~0.015 → gürültü içinde. LR'de de aynı resim.
+- **GMSC:** age <25 → test'te **ortalama sadece ≈8 kişi** (500'den). Marginal worst 0.803, gap 0.137; Partial/Exhaustive 0.832, gap 0.108. age ≥60 → ≈160 kişi, Marginal worst 0.893, gap 0.017. Yani "büyük adaletsizlik" sadece çok küçük grup tanımında görünüyor.
+- **Taiwan:** age <25 → ≈45 kişi, Marginal worst 0.883, gap 0.029; 3'lü yaş → en küçük grup ≈14 kişi, Marginal 0.883, gap 0.060.
+- **AFCP'nin seçim oranı** aynı veri/model/regime içinde tanımdan neredeyse bağımsız (SGC 0.3, GMSC 0.2/0.4, Taiwan 0.5) → seçimi tanım değil seed belirliyor (tek istisna: SGC LR conditional=True, ≤33'te 0.195).
+**Ne anlama geliyor.**
+1. Grup tanımı "en kötü grup" rakamını güçlü biçimde değiştiriyor — ama çoğunlukla **grup küçüldüğü için** (test n≈500'de 8–14 kişilik grupta coverage'ın standart hatası çok büyük).
+2. Equalized yöntemler en küçük gruplarda Marginal'e göre ~1–3 puan iyileştirme gösteriyor (GMSC <25: 0.803→0.832) ama bu n≈8 ile güvenilir değil; tezde "küçük grup, kesin yorum yok" diye açıkça yazmalıyız.
+3. Test boyutu 500 → grup coverage'ı için SE ≈ 2–4 puan; yöntem farkları bunun altında.
+Tablo: `results/v2/rq4_groupdef_summary.csv`; script: `thesis_experiments/v2/analysis/group_def_table.py`.
 
 ## Araştırma soruları (taslak)
 - RQ1: Label bias coverage ve set size'da nasıl görünür?
