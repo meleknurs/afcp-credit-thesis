@@ -56,7 +56,8 @@ afcp-credit-thesis/
 │   │   ├── run_afcp.py           #   full conformal run: Marginal, Partial, Exhaustive, AFCP, Adaptive1
 │   │   ├── meter.py              #   fast disparity meter (screening of bias configurations)
 │   │   ├── eda_taiwan.py, make_cell_tables.py
-│   │   └── analysis/             #   summary tables (sample-size sweep, multi-attribute, RQ4)
+│   │   └── analysis/             #   summary tables and figures (sample-size sweep, multi-attribute,
+│   │                             #   group definition, 100-seed small-sample analysis)
 │   ├── mc_*.py, eda_*.py,        # Pilot study (July 2026) scripts
 │   │   combine_*.py, bias_meter.py
 │   └── results/

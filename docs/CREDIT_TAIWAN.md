@@ -231,7 +231,108 @@ hidden-defaults ε ∈ {0.3, 0.7} configurations with both variants, NN, train +
 - Per seed, the two variants mostly agree; the extra Adaptive1 selections are seeds where the
   t-test p-value was above 0.1 for one of the two labels.
 
-Possible extension: sensitivity to `ttest_delta` / `sig_level`.
+### 2.7 Sample-size sweep: joint vs calibration-only (NN, both regimes)
+
+Two designs, 10 seeds each, n_test = 500
+(`thesis_experiments/results/v2/taiwan_sweep_summary.csv`; script
+`thesis_experiments/v2/analysis/sweep_tables.py`):
+
+- **joint**: n_train = n_calib ∈ {2,000, 4,000, 6,000, 8,000} (the pilot's design, in
+  which training and calibration size are confounded);
+- **calibration-only**: n_train fixed at 6,000, n_calib ∈ {1,000, 2,000, 4,000, 6,000}.
+
+Both designs were run without bias and with hidden defaults at ε = 0.5 (train + cal).
+
+| regime | bias | design | n_calib | women cov (Marginal) | men cov | selects sex |
+|---|---|---|---|---|---|---|
+| marginal | none | cal-only | 1,000 / 2,000 / 4,000 | 0.906 / 0.892 / 0.906 | 0.90 | 0.00 / 0.10 / 0.10 |
+| marginal | none | joint | 2,000 / 4,000 / 6,000 / 8,000 | 0.915 / 0.896 / 0.900 / 0.896 | 0.88–0.91 | 0.10 / 0.20 / 0.00 / 0.10 |
+| marginal | hidden defaults 0.5 | cal-only | 1,000 / 2,000 / 4,000 | 0.841 / 0.832 / 0.847 | 0.88–0.90 | 0.50 / 0.40 / 0.50 |
+| marginal | hidden defaults 0.5 | joint | 2,000 / 4,000 / 6,000 / 8,000 | 0.850 / 0.843 / 0.847 / 0.835 | 0.87–0.89 | 0.27 / 0.50 / 0.50 / 0.40 |
+| label-cond. | hidden defaults 0.5 | cal-only | 1,000 / 2,000 / 4,000 | 0.887 / 0.883 / 0.888 | 0.91–0.92 | 0.15 / 0.20 / 0.20 |
+| label-cond. | hidden defaults 0.5 | joint | 2,000 / 4,000 / 6,000 / 8,000 | 0.890 / 0.882 / 0.881 / 0.891 | 0.91–0.93 | 0.10 / 0.20 / 0.20 / 0.20 |
+
+- Without bias, AFCP rarely selects sex (0–0.2) at any size: there is no increase in false
+  alarms with sample size.
+- Under hidden defaults the selection rate is 0.4–0.5 under the marginal regime with **no
+  clear trend in calibration size**; women's coverage stays at ≈ 0.83–0.85 at every size,
+  because the calibration labels themselves are corrupted and more of them do not help.
+- Under the label-conditional regime the selection rate is flat at 0.1–0.2 and women's
+  coverage is ≈ 0.88–0.89 (set size ≈ 1.7, §2.3).
+- Together with the GMSC sweep (`CREDIT_GMSC.md`), this does not support the pilot's
+  reading that AFCP "starts selecting once the sample is large enough": with 10 seeds,
+  selection is driven by which data sample is drawn rather than by its size. Section 2.9
+  revisits this with 100 seeds at much smaller sizes.
+
+### 2.8 Group definition (RQ4): age < 25 vs age 3-way (NN, marginal regime)
+
+Clean data, 10 seeds, n_train = n_calib = 6,000, n_test = 500
+(`thesis_experiments/results/v2/rq4_groupdef_summary.csv`; script
+`thesis_experiments/v2/analysis/group_def_table.py`). The candidate attribute is age; sex,
+marriage and education remain candidates in both runs.
+
+| definition | smallest group (test n) | worst-group cov: Marginal | Partial / Exhaustive | Adaptive | gap (Marginal) | selects age |
+|---|---|---|---|---|---|---|
+| age < 25 vs ≥ 25 | ≈ 45 | 0.883 | 0.894 / 0.894 | 0.893 | 0.029 | 0.5 |
+| age ≤ 35 / 36–55 / > 55 | ≈ 14 | 0.883 | 0.872 / 0.872 | 0.872 | 0.060 | 0.5 |
+
+- The worst-group figure is the same (0.883) under both definitions, but the gap doubles
+  under the three-way split because the smallest group (> 55) shrinks to ≈ 14 test observations;
+  with n_test = 500 the standard error of a group's coverage at that size is ≈ 8 pp, so
+  neither the gap nor the 1–2 pp differences between methods are resolvable.
+- AFCP's selection rate (0.5) does not depend on the definition: within a dataset, model
+  and regime it is determined by the seed rather than by the cut-off.
+
+### 2.9 Small samples, 100 seeds: how precisely can the selection rate be estimated?
+
+The 10-seed runs above give selection rates in steps of 0.1 with wide uncertainty. To
+estimate AFCP's detection rate with usable precision, the baseline and the hidden-defaults
+(ε = 0.5, train + cal) configurations were run with **100 seeds (2023–2122)** at small,
+Zhou & Sesia-style sample sizes, n_train = n_calib ∈ {100, 250, 500, 1,000}, NN, marginal
+regime, n_test = 500; 800 runs in total
+(`thesis_experiments/results/v2/taiwan_small_sample_summary.csv`; scripts
+`thesis_experiments/v2/analysis/small_sample_table.py`, `small_sample_figure.py`).
+
+![Small-sample selection rate](figures/taiwan_small_sample_selection.png)
+
+| bias | n_train = n_calib | selects sex, mean (95 % bootstrap CI) | selects none | women cov: Marginal | Partial | men cov: Marginal | set size (Marginal) | cal. AUROC |
+|---|---|---|---|---|---|---|---|---|
+| none | 100 | 0.03 (0.00–0.06) | 0.81 | 0.902 | 0.940 | 0.891 | 1.68 | 0.62 |
+| none | 250 | 0.04 (0.01–0.08) | 0.74 | 0.903 | 0.927 | 0.885 | 1.57 | 0.67 |
+| none | 500 | 0.07 (0.03–0.13) | 0.68 | 0.908 | 0.923 | 0.890 | 1.52 | 0.70 |
+| none | 1,000 | 0.06 (0.02–0.11) | 0.60 | 0.905 | 0.917 | 0.891 | 1.41 | 0.72 |
+| hidden defaults 0.5 | 100 | 0.07 (0.02–0.12) | 0.79 | 0.901 | 0.942 | 0.882 | 1.66 | 0.60 |
+| hidden defaults 0.5 | 250 | 0.15 (0.09–0.22) | 0.67 | 0.892 | 0.920 | 0.868 | 1.53 | 0.65 |
+| hidden defaults 0.5 | 500 | 0.24 (0.16–0.32) | 0.62 | 0.877 | 0.897 | 0.867 | 1.38 | 0.68 |
+| hidden defaults 0.5 | 1,000 | 0.31 (0.22–0.40) | 0.58 | 0.857 | 0.873 | 0.870 | 1.27 | 0.71 |
+
+`selects sex` is, as in all other tables, the fraction of test points for which AFCP
+selected sex, averaged over seeds; per seed it is almost always exactly 0 or 1 (in
+92–100 of 100 seeds), so it can also be read as the share of seeds that select sex.
+The interval is a percentile bootstrap over seeds. Women's coverage SD across seeds
+(Marginal): 0.033 at n = 100, 0.019 at n = 1,000.
+
+- **False-alarm rate.** On clean data AFCP's selection rate for sex is 0.03–0.07 at every
+  size (interval at n = 1,000: 0.02–0.11). There is no upward drift with sample size.
+- **Detection rate rises with n.** Under hidden defaults the selection rate increases
+  monotonically, 0.07 → 0.15 → 0.24 → 0.31, and the 95 % intervals at n = 100 and n = 1,000
+  (0.02–0.12 vs 0.22–0.40) do not overlap. With 100 seeds this trend is resolvable; with the 10-seed sweeps of §2.7 it
+  was not. The per-label flag rates are equal for label 0 and label 1 (e.g. 0.31 / 0.32 at
+  n = 1,000), so the label veto is not what limits selection here: the one-sample t-test
+  itself is under-powered with ≤ 1,000 calibration points.
+- **Detection and disparity grow together.** At n = 100 the sets are wide (1.68 labels on
+  average) and women are covered at 0.90 even under bias, so there is little disparity to
+  detect; as n grows the sets tighten (1.27) and the injected bias becomes visible as
+  under-coverage (0.857 vs 0.870 for men, and 0.857 vs 0.905 for women on clean data).
+- **Equalisation does not restore coverage.** Partial brings women to 0.873 at n = 1,000
+  under bias, against 0.917 on clean data: the same finding as §2.2 and §2.4, now at small
+  sample sizes and with 100 seeds. The group-conditional threshold is computed on
+  corrupted calibration labels.
+- At these sizes the classifier is weak (calibration AUROC 0.60–0.72 vs ≈ 0.76 at
+  n = 6,000), which is the expected regime for the detection test to be hardest.
+
+Possible extension: sensitivity to `ttest_delta` / `sig_level`, and the same 100-seed
+design at n = 6,000.
 
 ## References
 

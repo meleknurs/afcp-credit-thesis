@@ -246,7 +246,7 @@ Files: `thesis_experiments/results/v2/afcp/gmsc_multi/` (10 files).
 **What.** On clean data (**no bias injected**), the same attribute was
 defined with different cut-offs and all methods were run for each
 definition: SGC age ≤ 25 vs ≤ 33; GMSC age < 25 vs ≥ 60; Taiwan age < 25 vs
-three age groups. 120 runs in total (SGC 10 seeds × NN/LR × both regimes,
+age 3-way (≤ 35 / 36–55 / > 55). 120 runs in total (SGC 10 seeds × NN/LR × both regimes,
 GMSC 5 seeds, Taiwan 10 seeds).
 
 **Why.** The protected group is not given a priori in the data; it is
@@ -265,7 +265,7 @@ with the cut-off.
   Age ≥ 60: ≈ 160 observations; Marginal worst 0.893, gap 0.017. A large
   disparity appears only under the very small group definition.
 - **Taiwan:** age < 25: ≈ 45 observations; Marginal worst 0.883, gap 0.029.
-  Three age groups: smallest group ≈ 14 observations; Marginal 0.883, gap
+  Age 3-way: smallest group (> 55) ≈ 14 observations; Marginal 0.883, gap
   0.060.
 - **AFCP's selection rate** is almost independent of the definition within a
   dataset, model and regime (SGC 0.3, GMSC 0.2/0.4, Taiwan 0.5): selection is
@@ -286,6 +286,48 @@ with the cut-off.
 Table: `thesis_experiments/results/v2/rq4_groupdef_summary.csv`; script:
 `thesis_experiments/v2/analysis/group_def_table.py`.
 
+## Step 12 — Small samples with 100 seeds: estimating the detection rate precisely
+
+**What.** All selection rates above rest on 5–10 seeds, which resolves rates
+only in steps of 0.1–0.2. The Taiwan baseline and the hidden-defaults
+configuration (ε = 0.5, training + calibration) were therefore rerun with
+**100 seeds** at small sample sizes in the style of Zhou & Sesia's
+experiments, n_train = n_calib ∈ {100, 250, 500, 1,000}, neural network,
+marginal regime, test set 500: 800 runs in total.
+
+**Why.** To state AFCP's false-alarm rate and detection rate with confidence
+intervals rather than as single digits, and to see whether detection improves
+with sample size once the estimate is precise enough.
+
+**Results.**
+
+- Clean data: AFCP's selection rate for sex is 0.03–0.07 at every size (95 %
+  bootstrap interval at n = 1,000: 0.02–0.11). The false-alarm rate does not
+  grow with n.
+- Hidden defaults: the selection rate rises monotonically with n,
+  0.07 → 0.15 → 0.24 → 0.31 (intervals at n = 100 and n = 1,000:
+  0.02–0.12 and 0.22–0.40, which do not overlap). Per seed the rate is
+  almost always exactly 0 or 1, so it can be read as the share of seeds in
+  which sex is selected. The per-label flags are
+  equal for both labels, so the label veto is not the limiting factor here;
+  the t-test itself has little power with ≤ 1,000 calibration points.
+- At n = 100 the sets are wide (1.68 labels) and women are covered at 0.90
+  even under bias; as n grows the sets tighten (1.27) and the bias appears as
+  under-coverage (women 0.857 vs 0.905 on clean data).
+- Partial and Exhaustive do not restore women's coverage (0.873 at
+  n = 1,000), confirming Step 4 at small sample sizes with 100 seeds.
+
+**Interpretation.** With enough seeds, AFCP's detection rate does increase
+with sample size, and its false-alarm rate stays low. The pilot's reading
+(Step 0) was therefore directionally right but could not be established with
+5 seeds, and the 10-seed sweeps of Step 9 could not resolve it either. What
+remains unchanged is the central finding: detection does not translate into
+corrected coverage when the calibration labels are themselves biased.
+
+Files: `thesis_experiments/results/v2/taiwan_small_sample_summary.csv`,
+`docs/figures/taiwan_small_sample_selection.png`; details in
+`docs/CREDIT_TAIWAN.md`, Section 2.9.
+
 ## Research questions
 
 - **RQ1.** How does label bias manifest in coverage and prediction-set size?
@@ -298,8 +340,9 @@ Table: `thesis_experiments/results/v2/rq4_groupdef_summary.csv`; script:
 ## Open items
 
 - Sensitivity of AFCP's selection to `ttest_delta` and `sig_level`.
-- Selection rates based on 5–10 seeds are reported with caution; a larger
-  number of seeds is needed for precise comparisons.
+- Selection rates based on 5–10 seeds (Steps 2–11) are reported with
+  caution; Step 12 shows what 100 seeds resolve at small sample sizes, and
+  the same design at n = 6,000 would complete the picture.
 
 ## References
 
