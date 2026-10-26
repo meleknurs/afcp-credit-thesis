@@ -1,3 +1,12 @@
+"""
+Joint training/calibration sample-size sweep for AFCP on Give Me Some Credit.
+
+For each sample size n_train_calib, trains the classifier, calibrates all
+methods (Marginal, Partial, Exhaustive, AFCP-Adaptive, Adaptive1) and records
+coverage, set size and AFCP's attribute-selection rate for the age attribute
+on a fixed test set. Backs manuscript Table 4; the 5-seed combined summary is
+written by combine_sweep_results.py.
+"""
 import os, sys
 import torch
 import pandas as pd
@@ -134,10 +143,8 @@ def run_one(n_train_calib):
     Loss = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr)
 
-    # NOTE: model checkpoints are written to the system temp dir (not the
-    # Desktop-based repo folder). Writing under ~/Desktop can hit iCloud
-    # Desktop-sync I/O timeouts ("Operation timed out") for large checkpoint
-    # files; the temp dir is local and not synced.
+    # Model checkpoints are written to the system temp dir rather than the
+    # repository folder, to avoid I/O timeouts on cloud-synced folders.
     modeldir = os.path.join(tempfile.gettempdir(), "afcp_sweep_models", f"seed{seed}", f"n{n_train_calib}")
     bbox_mc = Blackbox(net, device, train_loader, batch_size=batch_size, max_epoch=n_epoch,
                        learning_rate=lr, val_loader=calib_loader, criterion=criterion,

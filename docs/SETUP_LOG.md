@@ -1,7 +1,7 @@
 # AFCP Credit Thesis — Setup & Replication Log
 
 This document records the complete setup process required to reproduce the
-original Adaptive Fair Conformal Prediction (AFCP) implementation by Zhou &
+original Adaptively Fair Conformal Prediction (AFCP) implementation by Zhou &
 Sesia (2024).
 
 Its purpose is to document every step needed to verify that the original code
@@ -9,7 +9,7 @@ runs correctly before any thesis-specific modifications are introduced.
 
 All thesis-specific datasets, experimental adaptations, preprocessing
 decisions, and methodological choices are documented separately in
-`CREDIT_ANALYSIS.md`.
+`V2_DESIGN.md`, the dataset documents `CREDIT_*.md` and `RESEARCH_SUMMARY.md`.
 
 Project:
 **Fairness-aware conformal prediction applied to credit scoring**
@@ -58,7 +58,6 @@ The `AFCP/` directory is treated as the original reference implementation. Thesi
 Cloned the original authors' repository into a clean project directory.
 
 ```bash
-cd ~/Desktop
 git clone https://github.com/FionaZ3696/Adaptively-Fair-Conformal-Prediction.git afcp-credit-thesis
 cd afcp-credit-thesis
 ```
@@ -230,7 +229,8 @@ python mc_real.py 1000 0.0001 500 2023 0 True
 The synthetic experiment confirms that the implementation runs on generated
 data. Replicating the real-data experiment verifies that the pipeline functions
 correctly on an actual dataset before any thesis-specific modifications are
-introduced. 
+introduced.
+
 **Parameters**
 
 | Parameter | Value | Meaning |
@@ -279,9 +279,6 @@ Table A9:
 - Exhaustive is maximally conservative (coverage 1.0, set size 4.0).
 - Marginal undercovers the smallest minority subgroup (coverage 0.450).
 - Set size ordering: Marginal < AFCP ≈ Adaptive1 < Partial < Exhaustive.
-
----
-
 
 ---
 
@@ -355,4 +352,4 @@ Completed
 The replication of the original AFCP implementation is complete.
 
 Subsequent thesis-specific datasets, methodological adaptations, and empirical
-analyses are documented separately in `CREDIT_ANALYSIS.md`.
+analyses are documented separately (see `RESEARCH_SUMMARY.md`).

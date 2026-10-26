@@ -379,13 +379,14 @@ Same hidden-defaults injection applied to the training set only (calibration and
   sig_level 0.1 being conservative for this effect size. The `ttest_delta` / `sig_level`
   sensitivity run (optional) would separate these.
 
-Pending (optional): label-conditional regime at one dose; LR at one dose; `sig_level` sweep.
+Possible extensions: the label-conditional regime and logistic regression at one dose, and a `sig_level` sweep.
 
 ## References
 
-- Yeh, I.-C. (2011). Give Me Some Credit. Kaggle Competition Dataset. Retrieved from
+- Credit Fusion, & Cukierski, W. (2011). Give Me Some Credit. Kaggle competition dataset.
   https://www.kaggle.com/competitions/GiveMeSomeCredit
-- Zhou, S., & Sesia, M. (2024). Conformal prediction under covariate shift with agnostic
-  correction. *arXiv preprint*.
+- Zhou, Y., & Sesia, M. (2024). Conformal classification with equalized coverage for
+  adaptively selected groups. *Advances in Neural Information Processing Systems (NeurIPS)*.
+  arXiv:2405.15106.
 - Angelopoulos, A. N., & Bates, S. (2022). A gentle introduction to conformal prediction
   and distribution-free uncertainty quantification. *arXiv preprint*.

@@ -2,7 +2,8 @@ name: AFCP v2 runs
 
 # Runs thesis_experiments/v2/run_afcp.py as a seed x config matrix on GitHub-hosted
 # runners and commits the result files back to results/v2/afcp/<dataset>/.
-# Datasets whose data is in the repo (sgc, taiwan) only; gmsc runs on the laptop.
+# Supported datasets: taiwan (data tracked in data/) and sgc. GMSC cannot be
+# redistributed and is run locally.
 
 on:
   workflow_dispatch:

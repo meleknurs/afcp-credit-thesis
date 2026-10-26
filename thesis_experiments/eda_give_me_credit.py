@@ -173,14 +173,14 @@ def make_figure(df: pd.DataFrame, out_path: str) -> None:
     plt.tight_layout()
     os.makedirs(FIG_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
-    print(f"\n✓ Figure saved to: {out_path}")
+    print(f"\nFigure saved to: {out_path}")
     plt.close()
 
 
 if __name__ == "__main__":
     print("Loading data...")
     df = load_gmsc()
-    print(f"✓ Loaded: {df.shape[0]:,} rows, {df.shape[1]} columns")
+    print(f"Loaded: {df.shape[0]:,} rows, {df.shape[1]} columns")
     
     summarize(df)
     

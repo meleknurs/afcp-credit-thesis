@@ -6,7 +6,7 @@ inside the original AFCP `experiments/` folder, before the thesis repository
 transparency and because they explain two decisions in the thesis:
 
 1. **Why `foreign_worker` was dropped as a sensitive attribute**
-   (it was promised in the preliminary study). On the UCI German Credit
+   (it was proposed in the preliminary study). On the UCI German Credit
    numeric data (n_train_calib = 700, n_test = 300, seed 2023, ttest_delta = 0.05)
    marginal CP covered foreign workers at 0.942 vs 0.935 for non-foreign
    workers: no disparity to correct, and AFCP never selected the attribute.
@@ -29,7 +29,7 @@ label-conditional calibration (`conditional=True`), ttest_delta = 0.05.
 | `results/gmsc_ndata{4000,5000}_*` | first GMSC runs (30 June), age as sensitive attribute, 500 test points |
 | `results/gmsc_sweep_*` | first GMSC sample-size sweep (3 July), n_test = 1000 |
 | `results/nursery_*` | replication of the paper's Nursery experiment (14 March) |
-| `scripts/` | the scripts as they were at the time (they expect to live inside `AFCP/experiments/`) |
+| `scripts/` | the scripts as they were at the time; they expect to live inside `AFCP/experiments/` and do not run from this location |
 
 Result-file columns follow the original AFCP output format; `selected_<idx>`
 is the fraction of test points for which attribute `<idx>` was selected.

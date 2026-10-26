@@ -231,7 +231,7 @@ hidden-defaults ε ∈ {0.3, 0.7} configurations with both variants, NN, train +
 - Per seed, the two variants mostly agree; the extra Adaptive1 selections are seeds where the
   t-test p-value was above 0.1 for one of the two labels.
 
-Pending (optional): sensitivity to `ttest_delta` / `sig_level`.
+Possible extension: sensitivity to `ttest_delta` / `sig_level`.
 
 ## References
 

@@ -1,7 +1,7 @@
 # Thesis experiments v2 — experimental design
 
-Status: v2 agreed 14 Oct 2026 (open items decided, see below), based on the
-literature review in `docs/literature/experiment_design_review.md`.
+Status: design fixed on 14 October 2026, based on a review of the
+fairness-aware conformal prediction and bias-injection literature.
 
 ## Thesis narrative (how the work is presented)
 
@@ -12,9 +12,6 @@ and produced three observations — mean prediction-set size ≈ 1.9 (sets almos
 always contained both labels), an AFCP attribute-selection rate of zero in most
 seeds, and classifier probabilities that assigned ≈ 0 to most true defaulters.
 Diagnosing these three observations (Section 0) is what fixed the design below.
-The BIAS 2026 conference submission based on the pilot was not accepted and is
-not referenced in the thesis; what is reported from the pilot, and how, is a
-presentation choice.
 
 Spine of the argument:
 
@@ -34,9 +31,9 @@ Spine of the argument:
 ## 0. Why a v2
 
 Phase 0 (Mar–Jul, `archive/phase0_early_trials/`) and Phase 1 (Jul,
-`thesis_experiments/`, BIAS 2026 paper) share one pipeline inherited from the
+`thesis_experiments/`) share one pipeline inherited from the
 AFCP replication. Diagnostics on 13–14 Oct 2026 (`bias_meter.py`) and the
-literature review show that inherited choices, not the data, drive the
+literature show that inherited choices, not the data, drive the
 headline results:
 
 | inherited choice | effect | source |
@@ -46,9 +43,9 @@ headline results:
 | n_test = 500 (AFCP code default) | smallest age group ≈ 67 test points → coverage SE ≈ 3.7 pp; group gaps of 3–10 pp unresolvable | binomial arithmetic; Cresswell et al. 2025 flag the same problem at 91 points |
 | GMSC sentinels 96/98 (269 rows) scaled as numeric; `german.data-numeric` → South German Credit switch undocumented | data-quality items no fairness paper documents either | Grömping 2019; computed from `cs-training.csv` |
 
-Phase 1 results stay as reported (git tag `v1-paper`); the thesis presents
+Phase 1 results stay as reported (commit `9ef040c`); the thesis presents
 them as the replication phase and v2 as the redesign. The guiding principle
-from the review: **every guarantee is a per-(group × label)-cell guarantee;
+from the literature: **every guarantee is a per-(group × label)-cell guarantee;
 design from the smallest cell outward.**
 
 ## 1. Datasets, roles, group definitions
@@ -65,7 +62,7 @@ Decisions
   that resolve 3–5 pp gaps in one split, free licence.
 - Foreign worker (SGC): tested in Phase 0 (52 test points, no detectable
   disparity); reported as tested-and-dropped.
-- GMSC age group (decided): Phase-1 three-level split stays primary for
+- GMSC age group: Phase-1 three-level split stays primary for
   continuity; the literature's < 25 cut (cell ≈ 0.12 % after cleaning) is
   reported as a comparability row with its cell size stated.
 - Taiwan: the 'others' levels of marriage (377 rows) and education (468 rows,
@@ -81,7 +78,7 @@ Decisions
   positive class; no other changes. One paragraph in the thesis on why
   `german.data-numeric` (Phase 0) was replaced.
 - GMSC: drop the 269 rows with sentinel 96/98 in the delinquency counters
-  (all three counters carry it simultaneously) — decided: drop;
+  (all three counters carry it simultaneously);
   drop age = 0; de-duplicate (609 rows); MonthlyIncome and NumberOfDependents
   → training median plus a missing indicator; log1p-transform
   RevolvingUtilization, DebtRatio, MonthlyIncome. State that no fairness
@@ -137,8 +134,8 @@ Decisions
 - Cost note: full AFCP ≈ 2 s per test point per adaptive method. Large test
   sets are used with the fast meter (marginal CP + analytic reproduction of
   the AFCP selection test); full AFCP runs use n_test = 1,000–2,000 and ≥ 10
-  seeds, parallelised on the laptop; GitHub Actions for the Taiwan grid if
-  the laptop budget is exceeded (decided).
+  seeds, run locally in parallel, with GitHub Actions used for the Taiwan
+  grid.
 - Seeds: 10 (2023–2032) for all full runs; 100 splits for SGC via the meter.
 - AFCP settings: `ttest_delta` ∈ {0, 0.02, 0.05} and t-test level ∈ {0.05,
   0.10} as a sensitivity sweep on Taiwan (code default 0.10; paper says 5 %).
@@ -147,14 +144,14 @@ Decisions
 
 ## 5. Bias injection (Taiwan primary; GMSC secondary)
 
-Mechanisms, following the review's effectiveness ranking:
+Mechanisms, ranked by their effectiveness in the literature:
 
 | arm | mechanism | injected into | grid | seeds | status |
 |---|---|---|---|---|---|
-| **label bias (primary)** | one-sided: fraction f of the disadvantaged group's *good* labels flipped to *bad* (Ceccon et al. 2025; Bias on Demand measurement bias on Y) | (a) train only; (b) train + calibration (Einbinder et al. 2022 protocol); test always clean | f ∈ {0, 0.05, 0.10, 0.20, 0.30, 0.40} | 10 | to implement (replaces the symmetric Bernoulli(0.5) noise of the 13 Oct pilot, which the literature and our pilot show only inflates sets) |
+| **label bias (primary)** | one-sided: fraction f of the disadvantaged group's *good* labels flipped to *bad* (Ceccon et al. 2025; Bias on Demand measurement bias on Y) | (a) train only; (b) train + calibration (Einbinder et al. 2022 protocol); test always clean | f ∈ {0, 0.05, 0.10, 0.20, 0.30, 0.40} | 10 | implemented (replaces the symmetric Bernoulli(0.5) noise of the 13 Oct pilot, which the literature and our pilot show only inflates sets) |
 | representation bias | retain share r of the disadvantaged group in training | train only | r ∈ {1, 0.5, 0.2, 0.1} | ≥ 30 | framed as a variance experiment (Pombal et al. 2022; Zhioua et al. 2025) |
 | measurement bias (negative control) | zero the payment-history fields for a fraction of the group | train + calibration | {0, 0.5, 1.0} | 10 | implemented; no disparity on GMSC pilot — kept as control |
-| score-shift (optional) | shift the logit of the group by β before thresholding (Legast et al. 2026) | train + calibration | β grid tbd | 10 | only if time permits |
+| score-shift (optional) | shift the logit of the group by β before thresholding (Legast et al. 2026) | train + calibration | β grid to be defined | 10 | optional extension |
 
 - Same data partition reused across bias levels within a seed (Legast et al.)
   so dose–response curves are clean.
@@ -164,7 +161,7 @@ Mechanisms, following the review's effectiveness ranking:
   group's defaulters, (ii) worst-group coverage and Δ_Cov per method, (iii)
   AFCP selection rate and per-label flag rate, (iv) set-size / singleton
   gaps — against f, mean ± SD over seeds.
-- Testable prediction (from the review): under one-sided flipping, marginal
+- Testable prediction (from the literature): under one-sided flipping, marginal
   CP loses coverage on the target group's defaulters first; equalized-
   coverage methods recover it at the price of set-size / singleton gaps
   (Cresswell et al.); AFCP's selection rate rises with f only once the
@@ -198,10 +195,10 @@ across seeds reported.
 
 ## 8. Order of work
 
-1. agree this document → 2. data scripts + EDA + cell-count tables (Taiwan
+1. finalise this design → 2. data scripts + EDA + cell-count tables (Taiwan
 new; GMSC fixes; SGC documented) → 3. classifiers with early stopping and
 degeneracy logging, verified with the meter on all three datasets → 4.
-baseline full-AFCP runs (parallel on the laptop) → 5. label-bias injection:
+baseline full-AFCP runs (run locally in parallel) → 5. label-bias injection:
 meter screening over the full grid, then full runs → 6. sensitivity
 (ttest_delta, test level, model) → 7. tables and figures.
 

@@ -1,7 +1,7 @@
 # South German Credit — Dataset Analysis & Experiments
 
 This document records all thesis-specific decisions and results for the
-South German Credit dataset. See `CREDIT_ANALYSIS.md` for the cross-dataset
+South German Credit dataset. See `RESEARCH_SUMMARY.md` for the cross-dataset
 overview and `SETUP_LOG.md` for the replication of the original AFCP
 implementation.
 

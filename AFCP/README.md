@@ -1,4 +1,11 @@
 # AFCP (Adaptively Fair Conformal Prediction)
+
+> This directory contains the original implementation by Yanfei Zhou and
+> Matteo Sesia, copied unchanged from
+> https://github.com/FionaZ3696/Adaptively-Fair-Conformal-Prediction
+> (see that repository for licensing terms). The text below is the original
+> README. Thesis-specific code lives outside this directory.
+
 This paper introduces a conformal inference method to evaluate uncertainty in classification by generating prediction sets with valid coverage conditional on adaptively chosen features. These features are carefully selected to reflect potential model limitations or biases. This can be useful to find a practical compromise between efficiency---by providing informative predictions---and algorithmic fairness---by ensuring equalized coverage for the most sensitive groups. We demonstrate the validity and effectiveness of this method on simulated and real data sets.
 
 Accompanying paper: *Conformal Classification with Equalized Coverage for Adaptively Selected Groups*.
@@ -7,7 +14,7 @@ Accompanying paper: *Conformal Classification with Equalized Coverage for Adapti
 ## Contents
 
  - `SelectiveCI_fairness` Python package implementing our methods and several alternative benchmarks.
-    - `SelectiveCI_fairness/blackbox.py` Codes to train and evaluate blackbox models.
+    - `SelectiveCI_fairness/black_box.py` Codes to train and evaluate blackbox models.
     - `SelectiveCI_fairness/evals.py` Codes to evaluate the performance of conformal prediction sets.
     - `SelectiveCI_fairness/methods.py` Codes to build conformal prediction sets using: 1) the Marginal method, 2) the Exhaustive method, 3) the Partial method, and 4) AFCP. 
     - `SelectiveCI_fairness/networks.py`Deep networks.
