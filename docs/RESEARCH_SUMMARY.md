@@ -343,6 +343,12 @@ Files: `thesis_experiments/results/v2/taiwan_small_sample_summary.csv`,
 - Selection rates based on 5–10 seeds (Steps 2–11) are reported with
   caution; Step 12 shows what 100 seeds resolve at small sample sizes, and
   the same design at n = 6,000 would complete the picture.
+- The multi-attribute runs use the main AFCP procedure (Algorithm 1: one
+  attribute per placeholder label, then the intersection over labels). The
+  two-attribute extension of Zhou & Sesia (Appendix A2), which lets each
+  label nominate up to two attributes before the intersection, is not yet
+  implemented; it is planned for the GMSC and Taiwan multi-attribute
+  configurations.
 
 ## References
 
