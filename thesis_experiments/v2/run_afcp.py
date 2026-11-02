@@ -7,7 +7,7 @@ Usage:
   python v2/run_afcp.py <dataset> <model> <seed> <config> <conditional> [options]
     config       <bias_type>:<group_col>:<level>:<eps>:<scope>   (see v2/meter.py; none:...:0:0:train for baseline)
     conditional  True | False     (label-conditional vs marginal calibration regime)
-  options (key=value): n_train n_calib n_test ttest_delta(0) sig_level(0.1) adaptive1(0|1) out_dir
+  options (key=value): n_train n_calib n_test ttest_delta(0) sig_level(0.1) adaptive1(0|1) out_dir score(aps|thr)
 
 Output: results/v2/afcp/<dataset>/<file>.txt in the Phase-1 column format, plus
 columns model, regime, bias_*, ttest_delta, sig_level, best_epoch, cal_auroc,
@@ -48,11 +48,16 @@ def main():
     sizes = DEFAULT_SIZES[ds][:2] + (1000,)
     n_tr, n_cal, n_te = int(opts.get("n_train", sizes[0])), int(opts.get("n_calib", sizes[1])), int(opts.get("n_test", sizes[2]))
     ttest_delta = float(opts.get("ttest_delta", 0)); sig_level = float(opts.get("sig_level", 0.1))
+    score_type = opts.get("score", "aps")
+    if score_type != "aps":
+        import third_party.utils as _tpu; _tpu.SCORE_TYPE = score_type
     run_adaptive1 = opts.get("adaptive1", "0") == "1"
     cfg = parse_config(cfg_s)
     out_dir = opts.get("out_dir", os.path.join(os.path.dirname(HERE), "results", "v2", "afcp", "rq4_groupdef" if cand_override else ds)); os.makedirs(out_dir, exist_ok=True)
     tag = f"{ds_tag}_{model_name}_ntr{n_tr}_ncal{n_cal}_nte{n_te}_cond{conditional}_td{ttest_delta}_sl{sig_level}_seed{seed}"
-    if cfg["eps"] > 0: tag += f"_bias{cfg['bias_type']}_{cfg['group_col']}{cfg['level']}_eps{cfg['eps']}_{cfg['scope']}"
+    if score_type != "aps": tag += f"_score{score_type}"
+    lvl_s = "&".join(map(str, cfg["level"])) if isinstance(cfg["level"], list) else str(cfg["level"])
+    if cfg["eps"] > 0: tag += f"_bias{cfg['bias_type']}_{cfg['group_col']}{lvl_s}_eps{cfg['eps']}_{cfg['scope']}"
     outfile = os.path.join(out_dir, tag + ".txt"); print("Output:", outfile)
 
     X_all, y_all, meta = LOADERS[ds]()
@@ -86,8 +91,8 @@ def main():
     def finish(df, method, k_hat=None, logsel=None):
         df["n_data"] = n_tr + n_cal; df["n_train"] = n_tr; df["n_calib"] = n_cal; df["seed"] = seed; df["alpha"] = ALPHA
         df["method"] = method; df["conditional"] = conditional; df["model"] = model_name; df["dataset"] = ds; df["cand_def"] = cand_override or "default"
-        df["run_config"] = cfg_s; df["bias_type"] = cfg["bias_type"]; df["bias_group"] = cfg["group_col"]; df["bias_level"] = cfg["level"]
-        df["bias_eps"] = cfg["eps"]; df["bias_scope"] = cfg["scope"]; df["ttest_delta"] = ttest_delta; df["sig_level"] = sig_level
+        df["run_config"] = cfg_s; df["bias_type"] = cfg["bias_type"]; df["bias_group"] = cfg["group_col"]; df["bias_level"] = lvl_s
+        df["bias_eps"] = cfg["eps"]; df["bias_scope"] = cfg["scope"]; df["ttest_delta"] = ttest_delta; df["sig_level"] = sig_level; df["score_type"] = score_type
         df["best_epoch"] = model.info.get("best_epoch", np.nan); df["cal_auroc"] = deg["auroc"]; df["cal_deg_pos"] = deg["share_ptrue_lt_tol_pos"]
         if k_hat is not None:
             norm = [[int(v) for v in np.asarray(k, dtype=object).reshape(-1)] for k in k_hat]

@@ -46,8 +46,21 @@ GMSC_DELINQ = ["NumberOfTime30-59DaysPastDueNotWorse", "NumberOfTime60-89DaysPas
 
 
 def parse_config(c):
+    """<bias_type>:<group_col>:<level>:<eps>:<scope>. An intersection target is written with "&",
+    e.g. labelneg:sex_female&age_3way:1&0:0.5:traincal (women aged <= 35)."""
     bt, gc, lvl, eps, scope = c.split(":")
-    return dict(bias_type=bt, group_col=gc, level=int(lvl), eps=float(eps), scope=scope)
+    lvls = [int(v) for v in lvl.split("&")]
+    return dict(bias_type=bt, group_col=gc, level=lvls[0] if len(lvls) == 1 else lvls, eps=float(eps), scope=scope)
+
+
+def target_mask(X, cfg):
+    """Boolean mask of the bias target group; supports intersections given as col1&col2 / lvl1&lvl2."""
+    cols = cfg["group_col"].split("&"); lvls = cfg["level"] if isinstance(cfg["level"], list) else [cfg["level"]]
+    assert len(cols) == len(lvls), f"group_col/level mismatch in {cfg}"
+    m = np.ones(len(X), bool)
+    for c, l in zip(cols, lvls):
+        m &= (X[c].values == l)
+    return m
 
 
 def inject(X, y, cfg, rng, is_train):
@@ -55,7 +68,7 @@ def inject(X, y, cfg, rng, is_train):
     X = X.copy(); y = y.copy()
     if cfg["eps"] <= 0 or cfg["bias_type"] == "none":
         return X, y
-    tgt = (X[cfg["group_col"]].values == cfg["level"])
+    tgt = target_mask(X, cfg)
     if cfg["bias_type"] == "label":          # "stigma": good -> bad in the target group
         cand = tgt & (y.values == 0)
         flip = cand & (rng.uniform(size=len(y)) < cfg["eps"])
