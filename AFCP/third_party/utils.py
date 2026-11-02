@@ -26,7 +26,7 @@ def compute_conf_pvals(test_score, calib_scores, left_tail = False):
 
 # Nonconformity score used by all methods. "aps" is the original (randomized APS, Romano et al. 2020);
 # "thr" is the threshold / LAC score p_hat(y), added for the thesis's score-choice comparison.
-# Both are oriented so that a larger score means the label is more plausible, as the p-value code expects.
+# Both are oriented like the original APS score (checked empirically: p_hat(y) alone inverts the sets).
 SCORE_TYPE = "aps"
 
 def nonconf_scores_mc(X_cal, Y_cal, bbox_mc, alpha = 0.1, random_state = 2023):
@@ -35,7 +35,8 @@ def nonconf_scores_mc(X_cal, Y_cal, bbox_mc, alpha = 0.1, random_state = 2023):
   p_hat_calib = bbox_mc.net.predict_prob(X_cal)
   n_cal = X_cal.shape[0]
   if SCORE_TYPE == "thr":
-    return np.asarray(p_hat_calib)[np.arange(n_cal), np.asarray(Y_cal).astype(int)]
+    # threshold / LAC score, oriented like the APS score below (larger = less plausible)
+    return 1.0 - np.asarray(p_hat_calib)[np.arange(n_cal), np.asarray(Y_cal).astype(int)]
   grey_box = ProbAccum(p_hat_calib)
   rng = np.random.default_rng(random_state)
   epsilon = rng.uniform(low=0.0, high=1.0, size=n_cal)
