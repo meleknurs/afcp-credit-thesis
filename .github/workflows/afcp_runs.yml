@@ -13,6 +13,9 @@ on:
         type: choice
         options: [taiwan, sgc]
         default: taiwan
+      candidates:
+        description: optional AFCP candidate attributes, "+"-separated (blank = dataset default; results go to rq4_groupdef)
+        default: ""
       model:
         description: model
         type: choice
@@ -42,6 +45,9 @@ on:
         default: "0"
       sig_level:
         default: "0.1"
+      score:
+        description: nonconformity score (aps = original APS, thr = threshold score p_hat)
+        default: "aps"
       adaptive1:
         description: also run Adaptive1 (0/1)
         default: "0"
@@ -80,10 +86,11 @@ jobs:
         run: |
           set -o pipefail
           cd thesis_experiments
-          ARGS="n_test=${{ inputs.n_test }} ttest_delta=${{ inputs.ttest_delta }} sig_level=${{ inputs.sig_level }} adaptive1=${{ inputs.adaptive1 }} out_dir=$GITHUB_WORKSPACE/out"
+          ARGS="n_test=${{ inputs.n_test }} ttest_delta=${{ inputs.ttest_delta }} sig_level=${{ inputs.sig_level }} adaptive1=${{ inputs.adaptive1 }} score=${{ inputs.score }} out_dir=$GITHUB_WORKSPACE/out"
           [ -n "${{ inputs.n_train }}" ] && ARGS="$ARGS n_train=${{ inputs.n_train }}"
           [ -n "${{ inputs.n_calib }}" ] && ARGS="$ARGS n_calib=${{ inputs.n_calib }}"
-          python v2/run_afcp.py ${{ inputs.dataset }} ${{ inputs.model }} ${{ matrix.seed }} "${{ matrix.config }}" ${{ inputs.conditional }} $ARGS 2>&1 | grep -v "it/s" | tail -40
+          DS="${{ inputs.dataset }}"; [ -n "${{ inputs.candidates }}" ] && DS="$DS@${{ inputs.candidates }}"
+          python v2/run_afcp.py $DS ${{ inputs.model }} ${{ matrix.seed }} "${{ matrix.config }}" ${{ inputs.conditional }} $ARGS 2>&1 | grep -v "it/s" | tail -40
       - name: Sanitise artifact name
         id: name
         shell: python
