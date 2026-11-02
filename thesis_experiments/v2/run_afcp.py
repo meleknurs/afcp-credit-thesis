@@ -80,6 +80,10 @@ def main():
     cols = list(X_tr.columns)
     cand = meta["candidate_cols"]; idx_list = [cols.index(c) for c in cand]
     eval_cols = meta["group_cols"]; eval_idx = [cols.index(c) for c in eval_cols]
+    target_te = None
+    if "&" in cfg["group_col"]:   # intersection bias: evaluate the target cell itself as an extra group
+        from v2.meter import target_mask
+        target_te = target_mask(X_te, cfg)
     Xtr, Xca, Xte = [d.values.astype("float64") for d in (X_tr, X_ca, X_te)]
     ytr, yca, yte = [d.values.astype("float64") for d in (y_tr, y_ca, y_te)]
     print(f"split: train {len(ytr)} calib {len(yca)} test {len(yte)}; candidates {cand} -> idx {idx_list}")
@@ -113,7 +117,13 @@ def main():
         m = eval_psets(C, yte); m["n_count"] = len(yte); m["attribute_idx"] = -1; m["attribute_level"] = -1
         c = eval_by_att_mc(Xte, yte, eval_idx, C)
         c["attribute_name"] = [eval_cols[eval_idx.index(int(a))] for a in c["attribute_idx"]]
-        res = pd.concat([res, finish(m, method, k_hat, logsel), finish(c, method, k_hat, logsel)])
+        parts = [finish(m, method, k_hat, logsel), finish(c, method, k_hat, logsel)]
+        if target_te is not None:   # coverage inside the intersection target cell and its complement
+            for lvl, mask in ((1, target_te), (0, ~target_te)):
+                tc = eval_psets([C[i] for i in np.where(mask)[0]], yte[mask]); tc["n_count"] = int(mask.sum())
+                tc["attribute_idx"] = -2; tc["attribute_level"] = lvl; tc["attribute_name"] = "bias_target_cell"
+                parts.append(finish(tc, method, k_hat, logsel))
+        res = pd.concat([res, *parts])
         print(f"  {method}: coverage {float(m.Coverage.iloc[0]):.3f} size {float(m.Length.iloc[0]):.3f}" +
               (f" selected_none {float(res.selected_none.iloc[-1]):.2f}" if k_hat is not None else ""), flush=True)
 
