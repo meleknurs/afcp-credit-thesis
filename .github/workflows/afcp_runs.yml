@@ -48,6 +48,9 @@ on:
       score:
         description: nonconformity score (aps = original APS, thr = threshold score p_hat)
         default: "aps"
+      afcp:
+        description: AFCP variant (main = one attribute per label; a2 = Appendix A2, up to two)
+        default: "main"
       adaptive1:
         description: also run Adaptive1 (0/1)
         default: "0"
@@ -86,7 +89,7 @@ jobs:
         run: |
           set -o pipefail
           cd thesis_experiments
-          ARGS="n_test=${{ inputs.n_test }} ttest_delta=${{ inputs.ttest_delta }} sig_level=${{ inputs.sig_level }} adaptive1=${{ inputs.adaptive1 }} score=${{ inputs.score }} out_dir=$GITHUB_WORKSPACE/out"
+          ARGS="n_test=${{ inputs.n_test }} ttest_delta=${{ inputs.ttest_delta }} sig_level=${{ inputs.sig_level }} adaptive1=${{ inputs.adaptive1 }} score=${{ inputs.score }} afcp=${{ inputs.afcp }} out_dir=$GITHUB_WORKSPACE/out"
           [ -n "${{ inputs.n_train }}" ] && ARGS="$ARGS n_train=${{ inputs.n_train }}"
           [ -n "${{ inputs.n_calib }}" ] && ARGS="$ARGS n_calib=${{ inputs.n_calib }}"
           DS="${{ inputs.dataset }}"; [ -n "${{ inputs.candidates }}" ] && DS="$DS@${{ inputs.candidates }}"
