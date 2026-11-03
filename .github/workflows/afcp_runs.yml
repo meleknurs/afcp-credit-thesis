@@ -11,7 +11,7 @@ on:
       dataset:
         description: dataset
         type: choice
-        options: [taiwan, sgc]
+        options: [taiwan, sgc, gmsc, gmsc_multi]
         default: taiwan
       candidates:
         description: optional AFCP candidate attributes, "+"-separated (blank = dataset default; results go to rq4_groupdef)
